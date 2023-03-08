@@ -36,6 +36,7 @@ const CombinedDarkTheme = {
 };
 
 function App(): JSX.Element {
+  Keychain.resetGenericPassword();
   return (
     <PaperProvider theme={CombinedDarkTheme}>
       <Provider store={store}>
