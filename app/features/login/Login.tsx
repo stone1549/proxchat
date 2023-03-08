@@ -1,6 +1,5 @@
 import React from "react";
-import { View } from "react-native";
-import { TextInput, Text, Button, useTheme } from "react-native-paper";
+import {TextInput, Text, Button, useTheme, Surface} from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import styled from "styled-components";
 import { useDispatch } from "react-redux";
@@ -37,7 +36,7 @@ const Login: React.FunctionComponent = () => {
   const loading = authLoading || !triedKeychain || token != "";
 
   return (
-    <Styled.Container>
+    <Styled.Container theme={theme}>
       {error && (
         <Styled.RequestError style={{ color: theme.colors.error }}>
           {error}
@@ -111,9 +110,11 @@ const Login: React.FunctionComponent = () => {
 };
 
 const Styled = {
-  Container: styled(View)`
-    margin-left: 5px;
-    margin-right: 5px;
+  Container: styled(Surface)`
+    height: 100%;
+    justify-content: center;
+    padding-left: 10px;
+    padding-right: 10px;
   `,
   LoginButton: styled(Button)`
     margin-top: 10px;
