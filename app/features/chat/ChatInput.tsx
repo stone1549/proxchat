@@ -13,7 +13,7 @@ const onSubmit =
     position: Location | undefined,
     sendMessage: (content: string, location: Location) => void
   ) =>
-  async (data: FormData) => {
+  (data: FormData) => {
     if (position === undefined) {
       return;
     }

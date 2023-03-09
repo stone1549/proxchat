@@ -188,7 +188,7 @@ export const useChat = () => {
   };
 };
 
-const reauth = async (
+export const reauth = async (
   retryFunction: (token: string) => Promise<void>,
   dispatch: AppDispatch
 ): Promise<void> => {

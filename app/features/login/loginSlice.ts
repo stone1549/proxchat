@@ -117,6 +117,14 @@ export const loginSlice = createSlice({
       state.triedKeychain = false;
       state.error = undefined;
     },
+    loggedIn: (state, action: PayloadAction<LoggedInActionPayload>) => {
+      const { payload } = action;
+      state.username = getSenderFromToken(payload.token).username;
+      state.token = payload.token;
+      state.loading = false;
+      state.error = undefined;
+      state.triedKeychain = false;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(loginAsync.fulfilled, (state, { payload }) => {

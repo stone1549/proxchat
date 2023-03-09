@@ -137,3 +137,35 @@ export const send = async (
     throw new MessageError(err.status, err.message);
   }
 };
+
+export class SignupError extends Error {
+  public status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    // 👇️ because we are extending a built-in class
+    Object.setPrototypeOf(this, SignupError.prototype);
+  }
+}
+
+export const signup = async (
+  email: string,
+  username: string,
+  password: string
+): Promise<TokenResp> => {
+  const response = await fetch(`${Config.AUTH_SERVICE_URL}/user`, {
+    method: "PUT",
+    body: JSON.stringify({ email, username, password }),
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (response.ok) {
+    return (await response.json()) as TokenResp;
+  } else {
+    const err = await response.json();
+    throw new SignupError(err.status, err.message);
+  }
+};

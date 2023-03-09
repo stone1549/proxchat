@@ -1,45 +1,75 @@
-import React from "react";
-import { TextInput, Text, Button, useTheme, Surface } from "react-native-paper";
-import { useForm, Controller } from "react-hook-form";
-import styled from "styled-components";
-import { useDispatch } from "react-redux";
-import { loginAsync } from "./loginSlice";
-import { AppDispatch, RootStackParamList } from "../../../App";
-import { useAuth } from "../../hooks";
+import React, { useEffect, useState } from "react";
+import { Button, Surface, Text, TextInput, useTheme } from "react-native-paper";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { AppDispatch, RootStackParamList } from "../../../App";
+import { useDispatch } from "react-redux";
+import { Controller, useForm } from "react-hook-form";
+import styled from "styled-components";
+import { ChatError, signup } from "../../api";
+import { loginSlice } from "../login/loginSlice";
+
+export type SignupProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "Signup">;
+};
 
 type FormData = {
   email: string;
+  username: string;
   password: string;
 };
 
-const onSubmit = (dispatch: AppDispatch) => (data: FormData) => {
-  dispatch(loginAsync({ ...data }));
-};
+const onSubmit =
+  (setError: (message: string) => void, dispatch: AppDispatch) =>
+  async (data: FormData) => {
+    try {
+      const token = await signup(data.email, data.username, data.password);
+      dispatch(loginSlice.actions.loggedIn({ token: token.token }));
+      setError("");
+    } catch (e) {
+      if (e instanceof ChatError) {
+        setError(e.message);
+        return;
+      }
 
-export type LoginProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList>;
-};
+      setError("unknown error");
+    }
+  };
 
-const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
-  const { token, triedKeychain, loading: authLoading, error } = useAuth();
-
+export const Signup: React.FunctionComponent<SignupProps> = ({
+  navigation,
+}) => {
+  const [error, setError] = useState("");
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: {
+      errors,
+      isSubmitSuccessful,
+      isSubmitting,
+      isValid,
+      isValidating,
+    },
   } = useForm<FormData>({
     defaultValues: {
       email: "",
+      username: "",
       password: "",
     },
   });
 
-  const loading = authLoading || !triedKeychain || token != "";
+  const loading = isSubmitting;
 
+  const disableSignupButton =
+    !isValid && isValidating && isSubmitSuccessful && isSubmitting;
+
+  useEffect(() => {
+    if (isSubmitSuccessful && !error) {
+      navigation.navigate("Chat");
+    }
+  }, [isSubmitSuccessful, error]);
   return (
     <Styled.Container theme={theme}>
       {error && (
@@ -57,7 +87,7 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
             /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
         }}
         render={({ field: { onChange, onBlur, value } }) => (
-          <Styled.LoginTextInput
+          <Styled.SignupTextInput
             label="email"
             onBlur={onBlur}
             onChangeText={onChange}
@@ -84,7 +114,33 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
           max: 24,
         }}
         render={({ field: { onChange, onBlur, value } }) => (
-          <Styled.LoginTextInput
+          <Styled.SignupTextInput
+            label="username"
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+            disabled={loading}
+            autoCapitalize="none"
+          />
+        )}
+        name="username"
+      />
+      {errors.username && (
+        <Styled.InputError style={{ color: theme.colors.error }}>
+          {errors.username.type === "required"
+            ? "username required"
+            : "invalid username"}
+        </Styled.InputError>
+      )}
+      <Controller
+        control={control}
+        rules={{
+          required: true,
+          min: 8,
+          max: 24,
+        }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Styled.SignupTextInput
             label="password"
             onBlur={onBlur}
             onChangeText={onChange}
@@ -102,22 +158,14 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
             : "invalid password"}
         </Styled.InputError>
       )}
-      <Styled.LoginButton
+      <Styled.SignupButton
         mode="contained"
-        onPress={handleSubmit(onSubmit(dispatch))}
+        onPress={handleSubmit(onSubmit(setError, dispatch))}
         loading={loading}
-        disabled={loading}
+        disabled={disableSignupButton}
       >
-        Login
-      </Styled.LoginButton>
-      <Styled.LoginButton
-        mode="outlined"
-        onPress={() => navigation.navigate("Signup")}
-        loading={loading}
-        disabled={loading}
-      >
-        Signup
-      </Styled.LoginButton>
+        Create Account
+      </Styled.SignupButton>
     </Styled.Container>
   );
 };
@@ -129,10 +177,10 @@ const Styled = {
     padding-left: 10px;
     padding-right: 10px;
   `,
-  LoginButton: styled(Button)`
+  SignupButton: styled(Button)`
     margin-top: 10px;
   `,
-  LoginTextInput: styled(TextInput)`
+  SignupTextInput: styled(TextInput)`
     margin-top: 10px;
   `,
   InputError: styled(Text)`
@@ -146,5 +194,3 @@ const Styled = {
     font-weight: bold;
   `,
 };
-
-export default Login;

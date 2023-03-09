@@ -13,11 +13,13 @@ import { Provider } from "react-redux";
 import store from "./app/store";
 import { ChatScreen } from "./app/features/chat/ChatScreen";
 import { Menu } from "./app/features/menu/Menu";
+import { SignupScreen } from "./app/features/signup/SignupScreen";
 
 export type AppDispatch = typeof store.dispatch;
 
 export type RootStackParamList = {
   Chat: undefined;
+  Signup: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
@@ -48,6 +50,7 @@ function App(): JSX.Element {
                 headerRight: () => <Menu />,
               }}
             />
+            <RootStack.Screen name="Signup" component={SignupScreen} />
           </RootStack.Navigator>
         </NavigationContainer>
       </Provider>

@@ -1,18 +1,15 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native";
-import { Secured } from "../secured/Secured";
-import { Chat } from "./Chat";
 import React from "react";
 import { RootStackParamList } from "../../../App";
+import { Signup } from "./Signup";
 
-export const ChatScreen = ({
+export const SignupScreen = ({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "Chat">): JSX.Element => {
+}: NativeStackScreenProps<RootStackParamList, "Signup">): JSX.Element => {
   return (
     <SafeAreaView>
-      <Secured navigation={navigation}>
-        <Chat />
-      </Secured>
+      <Signup navigation={navigation} />
     </SafeAreaView>
   );
 };
