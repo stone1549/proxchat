@@ -24,6 +24,8 @@ export type PendingMessage = {
   sender: Sender;
   location: Location;
   retries: number;
+  failed: boolean;
+  createdAt: moment.Moment;
 };
 
 export const isMessage = (

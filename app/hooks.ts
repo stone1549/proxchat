@@ -67,6 +67,13 @@ export const useChat = () => {
         }
 
         const poll = async (token: string) => {
+          setPendingMessages([...pendingMessages.map(pending => {
+            if (pending.createdAt.isBefore(moment().subtract(CHAT_POLL_MS*3, 'millisecond'))) {
+              pending.failed = true;
+            }
+
+            return pending;
+          })]);
           const newMessages = await pollChat(position, after, token);
           setError("");
           if (newMessages.length > 0) {
@@ -98,16 +105,18 @@ export const useChat = () => {
 
   const sendMessage = async (content: string, position: Location) => {
     const sendFunc = async (token: string) => {
+      await send(content, position, token);
+    };
+    try {
       addPendingMessage({
         tempId: uuidv4(),
         content,
         sender: getSenderFromToken(token),
         location: position,
         retries: 0,
+        failed: false,
+        createdAt: moment(),
       });
-      await send(content, position, token);
-    };
-    try {
       await sendFunc(token);
     } catch (e) {
       if (e instanceof AuthError) {
