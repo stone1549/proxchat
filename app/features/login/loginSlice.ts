@@ -5,7 +5,6 @@ import * as Keychain from "react-native-keychain";
 import { getSenderFromToken } from "../../utils";
 
 type LoggedInActionPayload = {
-  username: string;
   token: string;
 };
 type LoginArg = {
@@ -56,7 +55,6 @@ export const keychainLoginAsync = createAsyncThunk<
       if (credentials) {
         const resp = await auth(credentials.username, credentials.password);
         return {
-          username: getSenderFromToken(resp.token).username,
           token: resp.token,
         };
       }
@@ -122,7 +120,7 @@ export const loginSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(loginAsync.fulfilled, (state, { payload }) => {
-      state.username = payload.username;
+      state.username = getSenderFromToken(payload.token).username;
       state.token = payload.token;
       state.loading = false;
       state.error = undefined;
@@ -141,7 +139,7 @@ export const loginSlice = createSlice({
       state.error = undefined;
     });
     builder.addCase(keychainLoginAsync.fulfilled, (state, { payload }) => {
-      state.username = payload.username;
+      state.username = getSenderFromToken(payload.token).username;
       state.token = payload.token;
       state.loading = false;
       state.error = undefined;
