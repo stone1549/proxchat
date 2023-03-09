@@ -1,28 +1,46 @@
 import React from "react";
-import {ActivityIndicator, Card, IconButton, MD3Colors, Text, useTheme} from "react-native-paper";
-import { isMessage, Message, PendingMessage } from "../../domain";
+import {
+  ActivityIndicator,
+  Button,
+  Card,
+  Dialog,
+  IconButton,
+  MD3Colors,
+  Portal,
+  Text,
+  useTheme
+} from "react-native-paper";
+import {isMessage, Location, Message, PendingMessage} from "../../domain";
 import styled from "styled-components";
 import {useAuth} from "../../hooks";
+import {FailedMessageDialog} from "./FailedMessageDialog";
 
 export type ChatBubbleProps = {
   message: Message | PendingMessage;
-  ownMessage: boolean;
+  removePendingMessage: (msg: PendingMessage|Message) => void,
+  resendMessage: (message: PendingMessage)  => void,
 };
 
 export const ChatBubble: React.FunctionComponent<ChatBubbleProps> = ({
-  message,
+message, removePendingMessage, resendMessage
 }) => {
   const {username} = useAuth();
   const theme = useTheme();
+  const [dialogVisible, setDialogVisible] = React.useState(false);
+
+  const showDialog = () => setDialogVisible(true);
+
+  const hideDialog = () => setDialogVisible(false);
+
   const { sender, content } = message;
 
   const pending = !isMessage(message);
   const failed = pending && message.failed;
-  const isOwnMessage = username === sender.username;
 
   let attributeOverrides = {};
 
-  if (pending || isOwnMessage) {
+  const ownMessage = username === sender.username;
+  if (pending || ownMessage) {
     attributeOverrides = {
       style: {
         backgroundColor: theme.colors.primaryContainer,
@@ -44,9 +62,21 @@ export const ChatBubble: React.FunctionComponent<ChatBubbleProps> = ({
         }
         {
           failed &&
-            <IconButton icon="alert" iconColor={MD3Colors.error50} theme={theme} />
+            <IconButton
+                icon="alert"
+                iconColor={MD3Colors.error50}
+                theme={theme}
+                onPress={showDialog}
+            />
         }
       </Styled.ChatBubbleContent>
+      <FailedMessageDialog
+        dialogVisible={dialogVisible}
+        hideDialog={hideDialog}
+        removePendingMessage={removePendingMessage}
+        resendMessage={resendMessage}
+        message={message as PendingMessage}
+        />
     </Styled.ChatBubble>
   );
 };
@@ -57,12 +87,15 @@ const Styled = {
     margin-left: 10px;
     margin-right: 10px;
     margin-top: 5px;
+    padding-bottom: 10px;
+    padding-top: 0px;
   `,
   ChatBubbleLabel: styled(Text)`
     font-weight: bold;
   `,
   ChatBubbleContent: styled(Card.Content)`
     flex-direction: row;
+    justify-content: center;
   `,
   ChatBubbleContentText: styled(Text)`
     display: flex;

@@ -25,7 +25,7 @@ import { getSenderFromToken } from "./utils";
 const CHAT_POLL_MS = 5000;
 const GPS_POLL_MS = 300000;
 
-const match = (pending: PendingMessage, message: Message) => {
+const match = (pending: PendingMessage, message: Message|PendingMessage) => {
   return (
     pending.content === message.content &&
     isEqual(pending.sender, message.sender) &&
@@ -47,7 +47,7 @@ export const useChat = () => {
     setPendingMessages([...pendingMessages, pending]);
   };
 
-  const removePendingMessage = (message: Message) => {
+  const removePendingMessage = (message: Message|PendingMessage) => {
     for (const [index, pending] of pendingMessages.entries()) {
       if (match(pending, message)) {
         const before = pendingMessages.slice(0, index);
@@ -132,7 +132,46 @@ export const useChat = () => {
       setError("unable to send");
     }
   };
-  return { messages, pendingMessages, position, sendMessage, error };
+
+  const resendMessage = async (message: PendingMessage) => {
+    const sendFunc = async (token: string) => {
+      await send(message.content, message.location, token);
+    };
+    try {
+      for (const [index, pm] of pendingMessages.entries()) {
+        if (isEqual(pm, message)) {
+          setPendingMessages([
+            ...pendingMessages.slice(0, index),
+            {
+              content: message.content,
+              location: message.location,
+              failed: false,
+              retries: message.retries+1,
+              createdAt: moment(),
+              tempId: message.tempId,
+              sender: message.sender,
+            },
+            ...pendingMessages.slice(index+1)],
+          );
+          break;
+        }
+      }
+      await sendFunc(token);
+    } catch (e) {
+      if (e instanceof AuthError) {
+        // reauth and retry
+        await reauth(sendFunc, dispatch);
+        setError("");
+        return;
+      } else if (e instanceof ChatError) {
+        setError(e.message);
+        return;
+      }
+
+      setError("unable to send");
+    }
+  };
+  return { messages, pendingMessages, position, sendMessage, error, removePendingMessage, resendMessage };
 };
 
 const reauth = async (

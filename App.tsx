@@ -11,9 +11,7 @@ import {
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Provider } from "react-redux";
 import store from "./app/store";
-import { ChatScreen } from "./app/features/chat/ChatScreen";
-import Keychain from "react-native-keychain";
-
+import { ChatScreen } from "./app/features/chat/ChatScreen";g
 
 export type AppDispatch = typeof store.dispatch;
 

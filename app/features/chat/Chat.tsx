@@ -8,8 +8,7 @@ import { ChatInput } from "./ChatInput";
 import { hashPendingMessage } from "../../domain";
 
 export const Chat: React.FunctionComponent = () => {
-  const { messages, pendingMessages, sendMessage, position, error } = useChat();
-  const { username } = useAuth();
+  const { messages, pendingMessages, removePendingMessage, sendMessage, resendMessage, position, error } = useChat();
   const theme = useTheme();
 
   return (
@@ -22,14 +21,16 @@ export const Chat: React.FunctionComponent = () => {
           <ChatBubble
             key={msg.id}
             message={msg}
-            ownMessage={msg.sender.username === username}
+            resendMessage={resendMessage}
+            removePendingMessage={removePendingMessage}
           />
         ))}
         {pendingMessages.map((pending) => (
           <ChatBubble
             key={hashPendingMessage(pending)}
             message={pending}
-            ownMessage={true}
+            removePendingMessage={removePendingMessage}
+            resendMessage={resendMessage}
           />
         ))}
       </ScrollView>
