@@ -1,8 +1,8 @@
 import React from "react";
 import { Banner, HelperText, Surface, useTheme } from "react-native-paper";
-import { useAuth, useChat } from "../../hooks";
+import { useChat } from "../../hooks";
 import styled from "styled-components";
-import { ScrollView, Text } from "react-native";
+import { ScrollView } from "react-native";
 import { ChatBubble } from "./ChatBubble";
 import { ChatInput } from "./ChatInput";
 import { hashPendingMessage } from "../../domain";
