@@ -2,10 +2,10 @@ import React from "react";
 import { Banner, HelperText, Surface, useTheme } from "react-native-paper";
 import { useChat } from "../../hooks";
 import styled from "styled-components";
-import { ScrollView } from "react-native";
+import { FlatList } from "react-native";
 import { ChatBubble } from "./ChatBubble";
 import { ChatInput } from "./ChatInput";
-import { hashPendingMessage } from "../../domain";
+import { isMessage } from "../../domain";
 
 export const Chat: React.FunctionComponent = () => {
   const {
@@ -24,24 +24,20 @@ export const Chat: React.FunctionComponent = () => {
       <Banner visible={!!error} theme={theme} elevation={3}>
         <Styled.ErrorText type="error">{error}</Styled.ErrorText>
       </Banner>
-      <ScrollView>
-        {messages.map((msg) => (
-          <ChatBubble
-            key={msg.id}
-            message={msg}
-            resendMessage={resendMessage}
-            removePendingMessage={removePendingMessage}
-          />
-        ))}
-        {pendingMessages.map((pending) => (
-          <ChatBubble
-            key={hashPendingMessage(pending)}
-            message={pending}
-            removePendingMessage={removePendingMessage}
-            resendMessage={resendMessage}
-          />
-        ))}
-      </ScrollView>
+      <FlatList
+        data={[...messages, ...pendingMessages]}
+        renderItem={(msg) => {
+          const key = isMessage(msg.item) ? msg.item.id : msg.item.tempId;
+          return (
+            <ChatBubble
+              key={key}
+              message={msg.item}
+              resendMessage={resendMessage}
+              removePendingMessage={removePendingMessage}
+            />
+          );
+        }}
+      />
       <ChatInput sendMessage={sendMessage} position={position} />
     </Styled.Chat>
   );
