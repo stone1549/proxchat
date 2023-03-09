@@ -14,6 +14,7 @@ import store from "./app/store";
 import { ChatScreen } from "./app/features/chat/ChatScreen";
 import Keychain from "react-native-keychain";
 
+
 export type AppDispatch = typeof store.dispatch;
 
 export type RootStackParamList = {
@@ -36,7 +37,6 @@ const CombinedDarkTheme = {
 };
 
 function App(): JSX.Element {
-  Keychain.resetGenericPassword();
   return (
     <PaperProvider theme={CombinedDarkTheme}>
       <Provider store={store}>
