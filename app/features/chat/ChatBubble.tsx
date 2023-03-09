@@ -8,23 +8,25 @@ import {
   MD3Colors,
   Portal,
   Text,
-  useTheme
+  useTheme,
 } from "react-native-paper";
-import {isMessage, Location, Message, PendingMessage} from "../../domain";
+import { isMessage, Location, Message, PendingMessage } from "../../domain";
 import styled from "styled-components";
-import {useAuth} from "../../hooks";
-import {FailedMessageDialog} from "./FailedMessageDialog";
+import { useAuth } from "../../hooks";
+import { FailedMessageDialog } from "./FailedMessageDialog";
 
 export type ChatBubbleProps = {
   message: Message | PendingMessage;
-  removePendingMessage: (msg: PendingMessage|Message) => void,
-  resendMessage: (message: PendingMessage)  => void,
+  removePendingMessage: (msg: PendingMessage | Message) => void;
+  resendMessage: (message: PendingMessage) => void;
 };
 
 export const ChatBubble: React.FunctionComponent<ChatBubbleProps> = ({
-message, removePendingMessage, resendMessage
+  message,
+  removePendingMessage,
+  resendMessage,
 }) => {
-  const {username} = useAuth();
+  const { username } = useAuth();
   const theme = useTheme();
   const [dialogVisible, setDialogVisible] = React.useState(false);
 
@@ -45,7 +47,7 @@ message, removePendingMessage, resendMessage
       style: {
         backgroundColor: theme.colors.primaryContainer,
         color: theme.colors.onPrimary,
-      }
+      },
     };
   }
   return (
@@ -57,18 +59,15 @@ message, removePendingMessage, resendMessage
           </Styled.ChatBubbleLabel>
           : {content}
         </Styled.ChatBubbleContentText>
-        {pending && !failed &&
-            <ActivityIndicator theme={theme} />
-        }
-        {
-          failed &&
-            <IconButton
-                icon="alert"
-                iconColor={MD3Colors.error50}
-                theme={theme}
-                onPress={showDialog}
-            />
-        }
+        {pending && !failed && <ActivityIndicator theme={theme} />}
+        {failed && (
+          <IconButton
+            icon="alert"
+            iconColor={MD3Colors.error50}
+            theme={theme}
+            onPress={showDialog}
+          />
+        )}
       </Styled.ChatBubbleContent>
       <FailedMessageDialog
         dialogVisible={dialogVisible}
@@ -76,7 +75,7 @@ message, removePendingMessage, resendMessage
         removePendingMessage={removePendingMessage}
         resendMessage={resendMessage}
         message={message as PendingMessage}
-        />
+      />
     </Styled.ChatBubble>
   );
 };
@@ -101,6 +100,5 @@ const Styled = {
     display: flex;
     flex: 1;
   `,
-  ChatBubbleAlertIcon: styled(IconButton)`
-  `,
+  ChatBubbleAlertIcon: styled(IconButton)``,
 };

@@ -25,7 +25,7 @@ import { getSenderFromToken } from "./utils";
 const CHAT_POLL_MS = 5000;
 const GPS_POLL_MS = 300000;
 
-const match = (pending: PendingMessage, message: Message|PendingMessage) => {
+const match = (pending: PendingMessage, message: Message | PendingMessage) => {
   return (
     pending.content === message.content &&
     isEqual(pending.sender, message.sender) &&
@@ -47,7 +47,7 @@ export const useChat = () => {
     setPendingMessages([...pendingMessages, pending]);
   };
 
-  const removePendingMessage = (message: Message|PendingMessage) => {
+  const removePendingMessage = (message: Message | PendingMessage) => {
     for (const [index, pending] of pendingMessages.entries()) {
       if (match(pending, message)) {
         const before = pendingMessages.slice(0, index);
@@ -67,13 +67,19 @@ export const useChat = () => {
         }
 
         const poll = async (token: string) => {
-          setPendingMessages([...pendingMessages.map(pending => {
-            if (pending.createdAt.isBefore(moment().subtract(CHAT_POLL_MS*3, 'millisecond'))) {
-              pending.failed = true;
-            }
+          setPendingMessages([
+            ...pendingMessages.map((pending) => {
+              if (
+                pending.createdAt.isBefore(
+                  moment().subtract(CHAT_POLL_MS * 3, "millisecond")
+                )
+              ) {
+                pending.failed = true;
+              }
 
-            return pending;
-          })]);
+              return pending;
+            }),
+          ]);
           const newMessages = await pollChat(position, after, token);
           setError("");
           if (newMessages.length > 0) {
@@ -146,13 +152,13 @@ export const useChat = () => {
               content: message.content,
               location: message.location,
               failed: false,
-              retries: message.retries+1,
+              retries: message.retries + 1,
               createdAt: moment(),
               tempId: message.tempId,
               sender: message.sender,
             },
-            ...pendingMessages.slice(index+1)],
-          );
+            ...pendingMessages.slice(index + 1),
+          ]);
           break;
         }
       }
@@ -171,7 +177,15 @@ export const useChat = () => {
       setError("unable to send");
     }
   };
-  return { messages, pendingMessages, position, sendMessage, error, removePendingMessage, resendMessage };
+  return {
+    messages,
+    pendingMessages,
+    position,
+    sendMessage,
+    error,
+    removePendingMessage,
+    resendMessage,
+  };
 };
 
 const reauth = async (

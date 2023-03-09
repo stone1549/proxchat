@@ -8,7 +8,15 @@ import { ChatInput } from "./ChatInput";
 import { hashPendingMessage } from "../../domain";
 
 export const Chat: React.FunctionComponent = () => {
-  const { messages, pendingMessages, removePendingMessage, sendMessage, resendMessage, position, error } = useChat();
+  const {
+    messages,
+    pendingMessages,
+    removePendingMessage,
+    sendMessage,
+    resendMessage,
+    position,
+    error,
+  } = useChat();
   const theme = useTheme();
 
   return (

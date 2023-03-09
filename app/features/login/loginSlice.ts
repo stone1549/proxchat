@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
 import { auth, AuthError } from "../../api";
 import * as Keychain from "react-native-keychain";
-import {getSenderFromToken} from "../../utils";
+import { getSenderFromToken } from "../../utils";
 
 type LoggedInActionPayload = {
   username: string;
@@ -55,7 +55,10 @@ export const keychainLoginAsync = createAsyncThunk<
       const credentials = await Keychain.getGenericPassword();
       if (credentials) {
         const resp = await auth(credentials.username, credentials.password);
-        return { username: getSenderFromToken(resp.token).username, token: resp.token };
+        return {
+          username: getSenderFromToken(resp.token).username,
+          token: resp.token,
+        };
       }
 
       return thunkAPI.rejectWithValue({
