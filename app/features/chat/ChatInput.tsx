@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useLayoutEffect } from "react";
 import { Button, Surface, TextInput, useTheme } from "react-native-paper";
 import styled from "styled-components";
 import { Controller, useForm } from "react-hook-form";
 import { Location } from "../../domain";
+import { Keyboard } from "react-native";
 
 type FormData = {
   message: "";
@@ -18,6 +19,7 @@ const onSubmit =
       return;
     }
 
+    Keyboard.dismiss();
     sendMessage(data.message, position);
   };
 

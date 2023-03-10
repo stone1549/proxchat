@@ -67,7 +67,7 @@ export const Chat: React.FunctionComponent = () => {
         />
       );
     };
-  }, []);
+  }, [removePendingMessage, resendMessage]);
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "position"}
