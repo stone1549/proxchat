@@ -7,6 +7,13 @@ import { Controller, useForm } from "react-hook-form";
 import styled from "styled-components";
 import { ChatError, signup } from "../../api";
 import { loginSlice } from "../login/loginSlice";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+} from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 export type SignupProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Signup">;
@@ -70,103 +77,112 @@ export const Signup: React.FunctionComponent<SignupProps> = ({
       navigation.navigate("Chat");
     }
   }, [isSubmitSuccessful, error]);
+
+  const headerHeight = useHeaderHeight();
   return (
-    <Styled.Container theme={theme}>
-      {error && (
-        <Styled.RequestError style={{ color: theme.colors.error }}>
-          {error}
-        </Styled.RequestError>
-      )}
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-          min: 5,
-          max: 24,
-          pattern:
-            /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Styled.SignupTextInput
-            label="email"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            textContentType="emailAddress"
-            autoCapitalize="none"
-            disabled={loading}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "position"}
+      keyboardVerticalOffset={headerHeight}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <Styled.Container theme={theme}>
+          {error && (
+            <Styled.RequestError style={{ color: theme.colors.error }}>
+              {error}
+            </Styled.RequestError>
+          )}
+          <Controller
+            control={control}
+            rules={{
+              required: true,
+              min: 5,
+              max: 24,
+              pattern:
+                /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Styled.SignupTextInput
+                label="email"
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                textContentType="emailAddress"
+                autoCapitalize="none"
+                disabled={loading}
+              />
+            )}
+            name="email"
           />
-        )}
-        name="email"
-      />
-      {errors.email && (
-        <Styled.InputError style={{ color: theme.colors.error }}>
-          {errors.email.type === "required"
-            ? "email required"
-            : "invalid email address"}
-        </Styled.InputError>
-      )}
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-          min: 8,
-          max: 24,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Styled.SignupTextInput
-            label="username"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            disabled={loading}
-            autoCapitalize="none"
+          {errors.email && (
+            <Styled.InputError style={{ color: theme.colors.error }}>
+              {errors.email.type === "required"
+                ? "email required"
+                : "invalid email address"}
+            </Styled.InputError>
+          )}
+          <Controller
+            control={control}
+            rules={{
+              required: true,
+              min: 8,
+              max: 24,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Styled.SignupTextInput
+                label="username"
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                disabled={loading}
+                autoCapitalize="none"
+              />
+            )}
+            name="username"
           />
-        )}
-        name="username"
-      />
-      {errors.username && (
-        <Styled.InputError style={{ color: theme.colors.error }}>
-          {errors.username.type === "required"
-            ? "username required"
-            : "invalid username"}
-        </Styled.InputError>
-      )}
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-          min: 8,
-          max: 24,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Styled.SignupTextInput
-            label="password"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            secureTextEntry={true}
-            disabled={loading}
+          {errors.username && (
+            <Styled.InputError style={{ color: theme.colors.error }}>
+              {errors.username.type === "required"
+                ? "username required"
+                : "invalid username"}
+            </Styled.InputError>
+          )}
+          <Controller
+            control={control}
+            rules={{
+              required: true,
+              min: 8,
+              max: 24,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Styled.SignupTextInput
+                label="password"
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                secureTextEntry={true}
+                disabled={loading}
+              />
+            )}
+            name="password"
           />
-        )}
-        name="password"
-      />
-      {errors.password && (
-        <Styled.InputError style={{ color: theme.colors.error }}>
-          {errors.password.type === "required"
-            ? "password required"
-            : "invalid password"}
-        </Styled.InputError>
-      )}
-      <Styled.SignupButton
-        mode="contained"
-        onPress={handleSubmit(onSubmit(setError, dispatch))}
-        loading={loading}
-        disabled={disableSignupButton}
-      >
-        Create Account
-      </Styled.SignupButton>
-    </Styled.Container>
+          {errors.password && (
+            <Styled.InputError style={{ color: theme.colors.error }}>
+              {errors.password.type === "required"
+                ? "password required"
+                : "invalid password"}
+            </Styled.InputError>
+          )}
+          <Styled.SignupButton
+            mode="contained"
+            onPress={handleSubmit(onSubmit(setError, dispatch))}
+            loading={loading}
+            disabled={disableSignupButton}
+          >
+            Create Account
+          </Styled.SignupButton>
+        </Styled.Container>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

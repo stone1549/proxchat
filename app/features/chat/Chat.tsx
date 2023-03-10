@@ -2,12 +2,19 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Banner, HelperText, Surface, useTheme } from "react-native-paper";
 import { useChat } from "../../hooks";
 import styled from "styled-components";
-import { FlatList, ListRenderItemInfo, View } from "react-native";
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  ListRenderItemInfo,
+  Platform,
+  View,
+} from "react-native";
 import { ChatBubble } from "./ChatBubble";
 import { ChatInput } from "./ChatInput";
 import { isMessage, Message, PendingMessage } from "../../domain";
 import { NativeSyntheticEvent } from "react-native/Libraries/Types/CoreEventTypes";
 import { NativeScrollEvent } from "react-native/Libraries/Components/ScrollView/ScrollView";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 type OnEndReachedFunc =
   | ((info: { distanceFromEnd: number }) => void)
@@ -32,7 +39,7 @@ export const Chat: React.FunctionComponent = () => {
   const theme = useTheme();
   const [atEndOfList, setAtEndOfList] = useState(false);
   const listData = [...messages, ...pendingMessages];
-
+  const headerHeight = useHeaderHeight();
   useLayoutEffect(() => {
     if (atEndOfList && listData.length > 0) {
       listRef?.current?.scrollToEnd({ animated: true });
@@ -62,21 +69,26 @@ export const Chat: React.FunctionComponent = () => {
     };
   }, []);
   return (
-    <Styled.Chat theme={theme}>
-      <Banner visible={!!error} theme={theme} elevation={3}>
-        <Styled.ErrorText type="error">{error}</Styled.ErrorText>
-      </Banner>
-      <FlatList
-        data={listData}
-        ref={listRef}
-        ListFooterComponent={<Styled.ChatLogFooter />}
-        onScroll={onScroll}
-        onEndReached={onReachedEndOfList}
-        onEndReachedThreshold={0.1}
-        renderItem={renderItem}
-      />
-      <ChatInput sendMessage={sendMessage} position={position} />
-    </Styled.Chat>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "position"}
+      keyboardVerticalOffset={headerHeight}
+    >
+      <Styled.Chat theme={theme}>
+        <Banner visible={!!error} theme={theme} elevation={3}>
+          <Styled.ErrorText type="error">{error}</Styled.ErrorText>
+        </Banner>
+        <FlatList
+          data={listData}
+          ref={listRef}
+          ListFooterComponent={<Styled.ChatLogFooter />}
+          onScroll={onScroll}
+          onEndReached={onReachedEndOfList}
+          onEndReachedThreshold={0.1}
+          renderItem={renderItem}
+        />
+        <ChatInput sendMessage={sendMessage} position={position} />
+      </Styled.Chat>
+    </KeyboardAvoidingView>
   );
 };
 

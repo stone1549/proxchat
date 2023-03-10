@@ -7,6 +7,13 @@ import { loginAsync } from "./loginSlice";
 import { AppDispatch, RootStackParamList } from "../../../App";
 import { useAuth } from "../../hooks";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+} from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 type FormData = {
   email: string;
@@ -27,6 +34,8 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
+  const headerHeight = useHeaderHeight();
+
   const {
     control,
     handleSubmit,
@@ -41,84 +50,91 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
   const loading = authLoading || !triedKeychain || token != "";
 
   return (
-    <Styled.Container theme={theme}>
-      {error && (
-        <Styled.RequestError style={{ color: theme.colors.error }}>
-          {error}
-        </Styled.RequestError>
-      )}
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-          min: 5,
-          max: 24,
-          pattern:
-            /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Styled.LoginTextInput
-            label="email"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            textContentType="emailAddress"
-            autoCapitalize="none"
-            disabled={loading}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "position"}
+      keyboardVerticalOffset={headerHeight}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <Styled.Container theme={theme}>
+          {error && (
+            <Styled.RequestError style={{ color: theme.colors.error }}>
+              {error}
+            </Styled.RequestError>
+          )}
+          <Controller
+            control={control}
+            rules={{
+              required: true,
+              min: 5,
+              max: 24,
+              pattern:
+                /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Styled.LoginTextInput
+                label="email"
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                textContentType="emailAddress"
+                autoCapitalize="none"
+                disabled={loading}
+              />
+            )}
+            name="email"
           />
-        )}
-        name="email"
-      />
-      {errors.email && (
-        <Styled.InputError style={{ color: theme.colors.error }}>
-          {errors.email.type === "required"
-            ? "email required"
-            : "invalid email address"}
-        </Styled.InputError>
-      )}
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-          min: 8,
-          max: 24,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Styled.LoginTextInput
-            label="password"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            secureTextEntry={true}
-            disabled={loading}
+          {errors.email && (
+            <Styled.InputError style={{ color: theme.colors.error }}>
+              {errors.email.type === "required"
+                ? "email required"
+                : "invalid email address"}
+            </Styled.InputError>
+          )}
+          <Controller
+            control={control}
+            rules={{
+              required: true,
+              min: 8,
+              max: 24,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Styled.LoginTextInput
+                label="password"
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                secureTextEntry={true}
+                disabled={loading}
+              />
+            )}
+            name="password"
           />
-        )}
-        name="password"
-      />
-      {errors.password && (
-        <Styled.InputError style={{ color: theme.colors.error }}>
-          {errors.password.type === "required"
-            ? "password required"
-            : "invalid password"}
-        </Styled.InputError>
-      )}
-      <Styled.LoginButton
-        mode="contained"
-        onPress={handleSubmit(onSubmit(dispatch))}
-        loading={loading}
-        disabled={loading}
-      >
-        Login
-      </Styled.LoginButton>
-      <Styled.LoginButton
-        mode="outlined"
-        onPress={() => navigation.navigate("Signup")}
-        loading={loading}
-        disabled={loading}
-      >
-        Signup
-      </Styled.LoginButton>
-    </Styled.Container>
+          {errors.password && (
+            <Styled.InputError style={{ color: theme.colors.error }}>
+              {errors.password.type === "required"
+                ? "password required"
+                : "invalid password"}
+            </Styled.InputError>
+          )}
+          <Styled.LoginButton
+            mode="contained"
+            onPress={handleSubmit(onSubmit(dispatch))}
+            loading={loading}
+            disabled={loading}
+          >
+            Login
+          </Styled.LoginButton>
+          <Styled.LoginButton
+            mode="outlined"
+            onPress={() => navigation.navigate("Signup")}
+            loading={loading}
+            disabled={loading}
+          >
+            Signup
+          </Styled.LoginButton>
+        </Styled.Container>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
