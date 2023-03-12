@@ -1,10 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { TextInput, Text, Button, useTheme, Surface } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import styled from "styled-components";
-import { useDispatch } from "react-redux";
-import { loginAsync } from "./loginSlice";
-import { AppDispatch, RootStackParamList } from "../../../App";
+import { RootStackParamList } from "../../../App";
 import { useAuth } from "../../hooks";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
@@ -20,18 +18,19 @@ type FormData = {
   password: string;
 };
 
-const onSubmit = (dispatch: AppDispatch) => (data: FormData) => {
-  dispatch(loginAsync({ ...data }));
-};
-
 export type LoginProps = {
   navigation: NativeStackNavigationProp<RootStackParamList>;
 };
 
 const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
-  const { token, triedKeychain, loading: authLoading, error } = useAuth();
+  const {
+    token,
+    triedKeychain,
+    loading: authLoading,
+    error,
+    login,
+  } = useAuth();
 
-  const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
   const headerHeight = useHeaderHeight();
@@ -48,6 +47,13 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
   });
 
   const loading = authLoading || !triedKeychain || token != "";
+
+  const onSubmit = useMemo(() => {
+    return (data: FormData) => {
+      const { email, password } = data;
+      login(email, password);
+    };
+  }, [login]);
 
   return (
     <KeyboardAvoidingView
@@ -118,7 +124,7 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
           )}
           <Styled.LoginButton
             mode="contained"
-            onPress={handleSubmit(onSubmit(dispatch))}
+            onPress={handleSubmit(onSubmit)}
             loading={loading}
             disabled={loading}
           >

@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   keychainLoginAsync,
   login,
+  loginAsync,
   logout,
   selectError,
   selectLoading,
@@ -9,7 +10,7 @@ import {
   selectTriedKeychain,
   selectUsername,
 } from "./features/login/loginSlice";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { AppDispatch } from "../App";
 import { auth } from "./api";
 import { useIsomorphicLayoutEffect } from "react-redux/es/utils/useIsomorphicLayoutEffect";
@@ -32,6 +33,7 @@ export const reauth = async (
   }
 };
 
+export type LoginFunc = (email: string, password: string) => void;
 export const useAuth = () => {
   const token = useSelector(selectToken);
   const username = useSelector(selectUsername);
@@ -40,13 +42,19 @@ export const useAuth = () => {
   const error = useSelector(selectError);
   const dispatch = useDispatch<AppDispatch>();
 
+  const login = useMemo<LoginFunc>(() => {
+    return (email: string, password: string) => {
+      dispatch(loginAsync({ email, password }));
+    };
+  }, []);
+
   useEffect(() => {
     if (!token && !triedKeychain) {
       dispatch(keychainLoginAsync());
     }
   }, [token, triedKeychain]);
 
-  return { token, username, triedKeychain, loading, error };
+  return { token, username, login, triedKeychain, loading, error };
 };
 
 export const useInterval = (
