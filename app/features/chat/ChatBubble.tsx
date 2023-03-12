@@ -1,16 +1,13 @@
 import React from "react";
 import {
   ActivityIndicator,
-  Button,
   Card,
-  Dialog,
   IconButton,
   MD3Colors,
-  Portal,
   Text,
   useTheme,
 } from "react-native-paper";
-import { isMessage, Location, Message, PendingMessage } from "../../domain";
+import { isMessage, Message, PendingMessage } from "../../domain";
 import styled from "styled-components";
 import { useAuth } from "../../hooks";
 import { FailedMessageDialog } from "./FailedMessageDialog";

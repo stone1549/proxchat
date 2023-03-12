@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Banner, HelperText, Surface, useTheme } from "react-native-paper";
-import { useChat } from "../../hooks";
+import { useChat } from "./hooks";
 import styled from "styled-components";
 import {
   FlatList,

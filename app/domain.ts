@@ -33,10 +33,3 @@ export const isMessage = (
 ): value is Message => {
   return value.hasOwnProperty("id");
 };
-
-export const hashPendingMessage = (pending: PendingMessage): string => {
-  return (
-    `${pending.content}${pending.location.long}${pending.location.lat}` +
-    `${pending.sender.id}${pending.sender.username}`
-  );
-};

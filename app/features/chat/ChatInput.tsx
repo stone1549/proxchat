@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect } from "react";
+import React, { useEffect } from "react";
 import { Button, Surface, TextInput, useTheme } from "react-native-paper";
 import styled from "styled-components";
 import { Controller, useForm } from "react-hook-form";
