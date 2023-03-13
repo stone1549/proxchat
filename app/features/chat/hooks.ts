@@ -79,13 +79,14 @@ export const useChat = () => {
       setPendingMessages([
         ...pendingMessages,
         {
-          tempId: uuidv4(),
+          clientId: uuidv4(),
           content,
           sender: getSenderFromToken(token),
           location: position,
           retries: 0,
           failed: false,
           createdAt: moment(),
+          succeeded: false,
         },
       ]);
     };
@@ -93,7 +94,7 @@ export const useChat = () => {
 
   const resendMessage = async (message: PendingMessage) => {
     const sendFunc = async (token: string) => {
-      await send(message.content, message.location, token);
+      await send(message.content, message.location, message.clientId, token);
     };
     try {
       for (const [index, pm] of pendingMessages.entries()) {
@@ -106,8 +107,9 @@ export const useChat = () => {
               failed: false,
               retries: message.retries + 1,
               createdAt: moment(),
-              tempId: message.tempId,
+              clientId: message.clientId,
               sender: message.sender,
+              succeeded: false,
             },
             ...pendingMessages.slice(index + 1),
           ]);
@@ -131,11 +133,7 @@ export const useChat = () => {
 };
 
 const match = (pending: PendingMessage, message: Message | PendingMessage) => {
-  return (
-    pending.content === message.content &&
-    isEqual(pending.sender, message.sender) &&
-    isEqual(pending.location, message.location)
-  );
+  return pending.clientId === message.clientId;
 };
 
 const sendPendingMessages = async (
@@ -146,11 +144,17 @@ const sendPendingMessages = async (
 ) => {
   for (const pendingMessage of pendingMessages) {
     const sendFunc = async (token: string) => {
-      await send(pendingMessage.content, pendingMessage.location, token);
+      await send(
+        pendingMessage.content,
+        pendingMessage.location,
+        pendingMessage.clientId,
+        token
+      );
     };
 
     try {
       await sendFunc(token);
+      pendingMessage.succeeded = true;
     } catch (e) {
       if (e instanceof AuthError) {
         // reauth and retry

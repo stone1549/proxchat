@@ -57,7 +57,7 @@ export const Chat: React.FunctionComponent = () => {
   const renderItem = useMemo<RenderItemFunc>(() => {
     return (item) => {
       const { item: msg } = item;
-      const key = isMessage(msg) ? msg.id : msg.tempId;
+      const key = isMessage(msg) ? msg.id : msg.clientId;
       return (
         <ChatBubble
           key={key}

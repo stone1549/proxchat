@@ -84,6 +84,7 @@ export const pollChat = async (
           lat: message.location.lat,
         },
         createdAt: moment(message.createdAt as moment.Moment),
+        clientId: message.clientId,
       });
     }
 
@@ -112,6 +113,7 @@ export class MessageError extends Error {
 export const send = async (
   message: string,
   location: Location,
+  clientId: string,
   token: string
 ): Promise<Message> => {
   const response = await fetch(`${Config.MESSAGE_SERVICE_URL}/messages`, {
@@ -119,6 +121,7 @@ export const send = async (
     body: JSON.stringify({
       content: message,
       location: { lat: location.lat, long: location.long },
+      clientId: clientId,
     }),
     headers: {
       Accept: "application/json",

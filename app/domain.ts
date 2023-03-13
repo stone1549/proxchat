@@ -16,16 +16,18 @@ export type Message = {
   sender: Sender;
   location: Location;
   createdAt: moment.Moment;
+  clientId: string;
 };
 
 export type PendingMessage = {
-  tempId: string;
+  clientId: string;
   content: string;
   sender: Sender;
   location: Location;
   retries: number;
   failed: boolean;
   createdAt: moment.Moment;
+  succeeded: boolean;
 };
 
 export const isMessage = (
