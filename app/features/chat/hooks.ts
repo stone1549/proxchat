@@ -42,6 +42,7 @@ export const useChat = () => {
     await sendPendingMessages(
       pendingMessages,
       setPendingMessages,
+      messages,
       token,
       dispatch
     );
@@ -139,9 +140,11 @@ const match = (pending: PendingMessage, message: Message | PendingMessage) => {
 const sendPendingMessages = async (
   pendingMessages: Array<PendingMessage>,
   setPendingMessages: (pendingMessages: Array<PendingMessage>) => void,
+  messages: Array<Message>,
   token: string,
   dispatch: AppDispatch
 ) => {
+  const stillPending: Array<PendingMessage> = [];
   for (const pendingMessage of pendingMessages) {
     const sendFunc = async (token: string) => {
       await send(
@@ -153,8 +156,17 @@ const sendPendingMessages = async (
     };
 
     try {
-      await sendFunc(token);
-      pendingMessage.succeeded = true;
+      if (!pendingMessage.succeeded && !pendingMessage.failed) {
+        await sendFunc(token);
+        pendingMessage.succeeded = true;
+        stillPending.push(pendingMessage);
+      } else if (pendingMessage.succeeded) {
+        if (!messages.some((pm) => pm.clientId === pendingMessage.clientId)) {
+          stillPending.push(pendingMessage);
+        }
+      } else {
+        stillPending.push(pendingMessage);
+      }
     } catch (e) {
       if (e instanceof AuthError) {
         // reauth and retry
@@ -167,9 +179,11 @@ const sendPendingMessages = async (
       } else {
         pendingMessage.failed = true;
       }
+
+      stillPending.push(pendingMessage);
     }
   }
-  setPendingMessages([...pendingMessages]);
+  setPendingMessages([...stillPending]);
 };
 
 export const usePosition = () => {
