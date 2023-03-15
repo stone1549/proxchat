@@ -12,7 +12,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Provider } from "react-redux";
 import store from "./app/store";
 import { ChatScreen } from "./app/features/chat/ChatScreen";
-import { Menu } from "./app/features/menu/Menu";
 import { SignupScreen } from "./app/features/signup/SignupScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -45,13 +44,7 @@ function App(): JSX.Element {
         <Provider store={store}>
           <NavigationContainer theme={CombinedDarkTheme}>
             <RootStack.Navigator>
-              <RootStack.Screen
-                name="Chat"
-                component={ChatScreen}
-                options={{
-                  headerRight: () => <Menu />,
-                }}
-              />
+              <RootStack.Screen name="Chat" component={ChatScreen} />
               <RootStack.Screen name="Signup" component={SignupScreen} />
             </RootStack.Navigator>
           </NavigationContainer>

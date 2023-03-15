@@ -50,13 +50,14 @@ export class ChatError extends Error {
 
 export const pollChat = async (
   position: Location,
+  radius: number,
   after: moment.Moment,
   token: string
 ): Promise<Array<Message>> => {
   const response = await fetch(
-    `${Config.MESSAGE_SERVICE_URL}/messages?radius=${
-      Config.CHAT_RADIUS
-    }&after=${after.valueOf() + 1}` +
+    `${Config.MESSAGE_SERVICE_URL}/messages?radius=${radius}&after=${
+      after.valueOf() + 1
+    }` +
       `&lat=${position.lat}&long=${position.long}&limit=${Config.MESSAGE_LIMIT}`,
     {
       method: "GET",

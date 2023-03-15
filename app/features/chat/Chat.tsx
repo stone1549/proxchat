@@ -1,4 +1,10 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Banner, HelperText, Surface, useTheme } from "react-native-paper";
 import { useChat } from "./hooks";
 import styled from "styled-components";
@@ -15,6 +21,8 @@ import { isMessage, Message, PendingMessage } from "../../domain";
 import { NativeSyntheticEvent } from "react-native/Libraries/Types/CoreEventTypes";
 import { NativeScrollEvent } from "react-native/Libraries/Components/ScrollView/ScrollView";
 import { useHeaderHeight } from "@react-navigation/elements";
+import { Menu } from "../menu/Menu";
+import { useNavigation } from "@react-navigation/native";
 
 type OnEndReachedFunc =
   | ((info: { distanceFromEnd: number }) => void)
@@ -26,6 +34,7 @@ type RenderItemFunc = (
 ) => JSX.Element;
 
 export const Chat: React.FunctionComponent = () => {
+  const navigation = useNavigation();
   const {
     messages,
     pendingMessages,
@@ -34,12 +43,21 @@ export const Chat: React.FunctionComponent = () => {
     resendMessage,
     position,
     error,
+    radius,
+    setRadius,
   } = useChat();
+
   const listRef = useRef<FlatList>(null);
   const theme = useTheme();
   const [atEndOfList, setAtEndOfList] = useState(false);
   const listData = [...messages, ...pendingMessages];
   const headerHeight = useHeaderHeight();
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => <Menu currentRadius={radius} setRadius={setRadius} />,
+    });
+  }, [navigation, radius, setRadius]);
   useLayoutEffect(() => {
     if (atEndOfList && listData.length > 0) {
       listRef?.current?.scrollToEnd({ animated: true });
