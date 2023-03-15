@@ -10,7 +10,7 @@ import {
   selectTriedKeychain,
   selectUsername,
 } from "./features/login/loginSlice";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppDispatch } from "../App";
 import { auth } from "./api";
 import { useIsomorphicLayoutEffect } from "react-redux/es/utils/useIsomorphicLayoutEffect";
@@ -62,8 +62,8 @@ export const useInterval = (
   delay: number | null,
   immediately = false
 ) => {
+  const [firstRun, setFirstRun] = useState(true);
   const savedCallback = useRef(callback);
-
   // Remember the latest callback if it changes.
   useIsomorphicLayoutEffect(() => {
     savedCallback.current = callback;
@@ -77,11 +77,15 @@ export const useInterval = (
       return;
     }
 
-    if (immediately) {
-      callback();
-    }
     const id = setInterval(() => savedCallback.current(), delay);
 
     return () => clearInterval(id);
   }, [delay]);
+
+  if (firstRun) {
+    if (immediately) {
+      callback();
+    }
+    setFirstRun(false);
+  }
 };
