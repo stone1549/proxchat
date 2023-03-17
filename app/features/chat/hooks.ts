@@ -7,10 +7,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
-import { getSenderFromToken } from "../../utils";
+import { getSenderFromToken, getStoredRadius } from "../../utils";
 import Geolocation from "@react-native-community/geolocation";
 import Config from "react-native-config";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const CHAT_POLL_MS = 5000;
 export const GPS_POLL_MS = 300000;
@@ -35,9 +34,9 @@ export const useChat = () => {
 
   useEffect(() => {
     const checkStorageForRadius = async () => {
-      const storedRadius = await AsyncStorage.getItem("@Settings:radius");
+      const storedRadius = await getStoredRadius();
       if (storedRadius !== null) {
-        setRadius(Number.parseFloat(storedRadius));
+        setRadius(storedRadius);
       }
     };
 

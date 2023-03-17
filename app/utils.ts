@@ -1,5 +1,7 @@
 import { Sender } from "./domain";
 import jwt_decode, { JwtPayload } from "jwt-decode";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Config from "react-native-config";
 
 type AppToken = JwtPayload & {
   username: string | undefined;
@@ -11,4 +13,150 @@ export const getSenderFromToken = (token: string): Sender => {
     username: decoded.username || "",
     id: decoded.sub || "",
   };
+};
+
+export enum Units {
+  ft = "ft",
+  mi = "mi",
+  m = "m",
+  km = "km",
+}
+
+export enum UnitSystems {
+  metric = "metric",
+  standard = "standard",
+}
+
+export const StandardUnits = [Units.ft, Units.mi];
+export const MetricUnits = [Units.m, Units.km];
+
+export const convertToMeters = (value: number, units: Units) => {
+  switch (units) {
+    case Units.m:
+      return value;
+    case Units.km:
+      return value * 1000;
+    case Units.ft:
+      return value * 0.304;
+    case Units.mi:
+      return value * 1609.344;
+    default:
+      throw new Error("unhandled unit");
+  }
+};
+
+export const convertToDesiredUnits = (
+  value: number,
+  units: Units,
+  desiredUnits: Units
+) => {
+  switch (units) {
+    case Units.m:
+      switch (desiredUnits) {
+        case Units.ft:
+          return value * 3.28084;
+        case Units.km:
+          return value / 1000;
+        case Units.mi:
+          return value / 1609.344;
+        case Units.m:
+          return value;
+        default:
+          throw new Error("unsupported unit type");
+      }
+    case Units.km:
+      switch (desiredUnits) {
+        case Units.ft:
+          return value * 3280.8398950131;
+        case Units.km:
+          return value;
+        case Units.mi:
+          return value * 1.609344;
+        case Units.m:
+          return value * 1000;
+        default:
+          throw new Error("unsupported unit type");
+      }
+    case Units.ft:
+      switch (desiredUnits) {
+        case Units.ft:
+          return value;
+        case Units.km:
+          return value * 0.0003048;
+        case Units.mi:
+          return value * 0.0001894;
+        case Units.m:
+          return value * 0.304;
+        default:
+          throw new Error("unsupported unit type");
+      }
+    case Units.mi:
+      switch (desiredUnits) {
+        case Units.ft:
+          return value * 5280;
+        case Units.km:
+          return value * 1.609344;
+        case Units.mi:
+          return value;
+        case Units.m:
+          return value * 1609.344;
+        default:
+          throw new Error("unsupported unit type");
+      }
+    default:
+      throw new Error("unhandled unit");
+  }
+};
+
+export const getStoredRadiusUnitsSetting: () => Promise<Units> = async () => {
+  const storedRadiusUnits = await AsyncStorage.getItem("@Settings:radiusUnits");
+
+  if (!storedRadiusUnits) {
+    return Units.m;
+  }
+
+  return Units[storedRadiusUnits as keyof typeof Units];
+};
+
+export const setStoredRadiusUnitsSetting: (
+  unit: Units
+) => Promise<void> = async (unit: Units) => {
+  await AsyncStorage.setItem("@Settings:radiusUnits", unit);
+};
+
+export const getStoredUnitsSystemSetting: () => Promise<UnitSystems> =
+  async () => {
+    const storedUnitsSystem = await AsyncStorage.getItem(
+      "@Settings:unitSystem"
+    );
+
+    if (!storedUnitsSystem) {
+      return UnitSystems.metric;
+    }
+
+    return UnitSystems[storedUnitsSystem as keyof typeof UnitSystems];
+  };
+
+export const setStoredUnitsSystemSetting: (
+  unitsSystem: UnitSystems
+) => Promise<void> = async (unitsSystem: UnitSystems) => {
+  await AsyncStorage.setItem("@Settings:unitSystem", unitsSystem);
+};
+
+export const getStoredRadius: () => Promise<number> = async () => {
+  const radius = await AsyncStorage.getItem("@Settings:radius");
+
+  if (!radius && Config.CHAT_RADIUS) {
+    return Number.parseFloat(Config.CHAT_RADIUS);
+  } else if (radius) {
+    return Number.parseFloat(radius);
+  }
+
+  return 100;
+};
+
+export const setStoredRadius: (radius: number) => Promise<void> = async (
+  radius: number
+) => {
+  await AsyncStorage.setItem("@Settings:radius", radius.toString());
 };

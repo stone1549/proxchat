@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { Button, Dialog, Portal, TextInput } from "react-native-paper";
+import { Button, Dialog, Portal } from "react-native-paper";
 import { Controller, useForm } from "react-hook-form";
-import styled from "styled-components";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ChatRadiusInput } from "./ChatRadiusInput";
+import { setStoredRadius } from "../../utils";
 
 export type SettingsDialogProps = {
   visible: boolean;
@@ -11,15 +11,15 @@ export type SettingsDialogProps = {
   setRadius: (radius: number) => void;
 };
 
-type FormData = {
+export type SettingsFormData = {
   radius: string;
 };
 
 export const SettingsDialog: React.FunctionComponent<SettingsDialogProps> = ({
   visible,
   setVisible,
-  currentRadius,
   setRadius,
+  currentRadius,
 }) => {
   const hideDialog = useMemo(() => {
     return () => setVisible(false);
@@ -29,19 +29,20 @@ export const SettingsDialog: React.FunctionComponent<SettingsDialogProps> = ({
     control,
     handleSubmit,
     formState: { errors, isSubmitting, isValid, isDirty },
-  } = useForm<FormData>({
+  } = useForm<SettingsFormData>({
     defaultValues: {
       radius: `${currentRadius}`,
     },
   });
 
   const onSubmitRadius = useMemo(() => {
-    return async (data: FormData) => {
-      setRadius(Number.parseFloat(data.radius));
+    return async (data: SettingsFormData) => {
+      const newRadius = Number.parseFloat(data.radius);
+      setRadius(newRadius);
       hideDialog();
-      await AsyncStorage.setItem("@Settings:radius", data.radius);
+      await setStoredRadius(newRadius);
     };
-  }, [currentRadius, setRadius, hideDialog]);
+  }, [setRadius, hideDialog]);
 
   const disableSaveButton = !isValid || isSubmitting || !isDirty;
   return (
@@ -58,14 +59,11 @@ export const SettingsDialog: React.FunctionComponent<SettingsDialogProps> = ({
               pattern: /^\d+(\.\d+)?$/,
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Styled.SettingRadiusInput
-                label="radius"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-                inputMode="numeric"
-                keyboardType="decimal-pad"
+              <ChatRadiusInput
                 disabled={isSubmitting}
+                onBlur={onBlur}
+                onChange={onChange}
+                value={value}
               />
             )}
             name="radius"
@@ -83,8 +81,4 @@ export const SettingsDialog: React.FunctionComponent<SettingsDialogProps> = ({
       </Dialog>
     </Portal>
   );
-};
-
-const Styled = {
-  SettingRadiusInput: styled(TextInput)``,
 };
