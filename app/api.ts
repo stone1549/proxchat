@@ -1,6 +1,7 @@
 import moment from "moment";
 import { Location, Message } from "./domain";
 import Config from "react-native-config";
+import haversine from "haversine-distance";
 
 export class AuthError extends Error {
   public status: number;
@@ -86,6 +87,10 @@ export const pollChat = async (
         },
         createdAt: moment(message.createdAt as moment.Moment),
         clientId: message.clientId,
+        distanceInMeters: haversine(
+          { lat: position.lat, lon: position.long },
+          { lat: message.location.lat, lon: message.location.long }
+        ),
       });
     }
 

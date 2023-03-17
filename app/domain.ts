@@ -17,6 +17,7 @@ export type Message = {
   location: Location;
   createdAt: moment.Moment;
   clientId: string;
+  distanceInMeters: number;
 };
 
 export type PendingMessage = {
