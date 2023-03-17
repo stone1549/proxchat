@@ -50,13 +50,15 @@ export const ChatRadiusInput: React.FunctionComponent<ChatRadiusInputProps> = ({
             label: u,
           };
         });
-      default:
+      case "standard":
         return StandardUnits.map((u) => {
           return {
             value: u,
             label: u,
           };
         });
+      default:
+        throw new Error("unhandled unit system");
     }
   }, [unitSystem]);
 
