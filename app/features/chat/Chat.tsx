@@ -47,10 +47,10 @@ export const Chat: React.FunctionComponent = () => {
   } = useChat();
 
   const listRef = useRef<FlatList>(null);
-  const theme = useTheme();
   const [atEndOfList, setAtEndOfList] = useState(false);
   const listData = [...messages, ...pendingMessages];
   const headerHeight = useHeaderHeight();
+  const theme = useTheme();
 
   useEffect(() => {
     navigation.setOptions({
@@ -91,7 +91,7 @@ export const Chat: React.FunctionComponent = () => {
       keyboardVerticalOffset={headerHeight}
     >
       <Styled.Chat theme={theme}>
-        <Banner visible={!!error} theme={theme} elevation={3}>
+        <Banner visible={!!error} elevation={3}>
           <Styled.ErrorText type="error">{error}</Styled.ErrorText>
         </Banner>
         <FlatList

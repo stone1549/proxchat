@@ -1,6 +1,7 @@
 import React from "react";
-import { Button, Dialog, MD3Colors, Portal, Text } from "react-native-paper";
+import { Button, Dialog, Portal, Text, useTheme } from "react-native-paper";
 import { Message, PendingMessage } from "../../domain";
+import styled from "styled-components";
 
 export type FailedMessageDialogProps = {
   dialogVisible: boolean;
@@ -19,6 +20,7 @@ export const FailedMessageDialog: React.FunctionComponent<
   message,
   resendMessage,
 }) => {
+  const theme = useTheme();
   return (
     <Portal>
       <Dialog visible={dialogVisible} onDismiss={hideDialog}>
@@ -31,7 +33,7 @@ export const FailedMessageDialog: React.FunctionComponent<
               removePendingMessage(message);
             }}
           >
-            <Text style={{ color: MD3Colors.error50 }}>Delete</Text>
+            <Styled.ErrorText theme={theme}>Delete</Styled.ErrorText>
           </Button>
           <Button
             onPress={() => {
@@ -46,4 +48,10 @@ export const FailedMessageDialog: React.FunctionComponent<
       </Dialog>
     </Portal>
   );
+};
+
+const Styled = {
+  ErrorText: styled(Text)`
+    color: ${({ theme }) => theme.colors.error};
+  `,
 };

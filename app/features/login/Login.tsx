@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { TextInput, Text, Button, useTheme, Surface } from "react-native-paper";
+import { TextInput, Text, Button, Surface, useTheme } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import styled from "styled-components";
 import { RootStackParamList } from "../../../App";
@@ -31,8 +31,6 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
     login,
   } = useAuth();
 
-  const theme = useTheme();
-
   const headerHeight = useHeaderHeight();
 
   const {
@@ -55,17 +53,16 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
     };
   }, [login]);
 
+  const theme = useTheme();
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "position"}
       keyboardVerticalOffset={headerHeight}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Styled.Container theme={theme}>
+        <Styled.Container>
           {error && (
-            <Styled.RequestError style={{ color: theme.colors.error }}>
-              {error}
-            </Styled.RequestError>
+            <Styled.RequestError theme={theme}>{error}</Styled.RequestError>
           )}
           <Controller
             control={control}
@@ -90,7 +87,7 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
             name="email"
           />
           {errors.email && (
-            <Styled.InputError style={{ color: theme.colors.error }}>
+            <Styled.InputError theme={theme}>
               {errors.email.type === "required"
                 ? "email required"
                 : "invalid email address"}
@@ -116,7 +113,7 @@ const Login: React.FunctionComponent<LoginProps> = ({ navigation }) => {
             name="password"
           />
           {errors.password && (
-            <Styled.InputError style={{ color: theme.colors.error }}>
+            <Styled.InputError theme={theme}>
               {errors.password.type === "required"
                 ? "password required"
                 : "invalid password"}
@@ -158,11 +155,13 @@ const Styled = {
     margin-top: 10px;
   `,
   InputError: styled(Text)`
+    color: ${({ theme }) => theme.colors.error};
     align-self: flex-end;
     padding-top: 5px;
     font-weight: bold;
   `,
   RequestError: styled(Text)`
+    color: ${({ theme }) => theme.colors.error};
     padding-bottom: 5px;
     align-self: center;
     font-weight: bold;

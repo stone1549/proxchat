@@ -111,7 +111,7 @@ export const loginSlice = createSlice({
     },
     login: (state, action: PayloadAction<LoginAction>) => {
       const { payload } = action;
-      state.username = payload.username;
+      state.username = getSenderFromToken(payload.token).username;
       state.token = payload.token;
       state.loading = false;
       state.triedKeychain = false;

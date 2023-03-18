@@ -47,7 +47,6 @@ export const Signup: React.FunctionComponent<SignupProps> = ({
 }) => {
   const [error, setError] = useState("");
   const dispatch = useDispatch<AppDispatch>();
-  const theme = useTheme();
 
   const {
     control,
@@ -79,17 +78,16 @@ export const Signup: React.FunctionComponent<SignupProps> = ({
   }, [isSubmitSuccessful, error]);
 
   const headerHeight = useHeaderHeight();
+  const theme = useTheme();
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "position"}
       keyboardVerticalOffset={headerHeight}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Styled.Container theme={theme}>
+        <Styled.Container>
           {error && (
-            <Styled.RequestError style={{ color: theme.colors.error }}>
-              {error}
-            </Styled.RequestError>
+            <Styled.RequestError theme={theme}>{error}</Styled.RequestError>
           )}
           <Controller
             control={control}
@@ -114,7 +112,7 @@ export const Signup: React.FunctionComponent<SignupProps> = ({
             name="email"
           />
           {errors.email && (
-            <Styled.InputError style={{ color: theme.colors.error }}>
+            <Styled.InputError theme={theme}>
               {errors.email.type === "required"
                 ? "email required"
                 : "invalid email address"}
@@ -140,7 +138,7 @@ export const Signup: React.FunctionComponent<SignupProps> = ({
             name="username"
           />
           {errors.username && (
-            <Styled.InputError style={{ color: theme.colors.error }}>
+            <Styled.InputError theme={theme}>
               {errors.username.type === "required"
                 ? "username required"
                 : "invalid username"}
@@ -166,7 +164,7 @@ export const Signup: React.FunctionComponent<SignupProps> = ({
             name="password"
           />
           {errors.password && (
-            <Styled.InputError style={{ color: theme.colors.error }}>
+            <Styled.InputError theme={theme}>
               {errors.password.type === "required"
                 ? "password required"
                 : "invalid password"}
@@ -200,11 +198,13 @@ const Styled = {
     margin-top: 10px;
   `,
   InputError: styled(Text)`
+    color: ${({ theme }) => theme.colors.error};
     align-self: flex-end;
     padding-top: 5px;
     font-weight: bold;
   `,
   RequestError: styled(Text)`
+    color: ${({ theme }) => theme.colors.error};
     padding-bottom: 5px;
     align-self: center;
     font-weight: bold;

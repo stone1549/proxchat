@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Platform, TextInput as NativeTextInput } from "react-native";
+import { TextInput as NativeTextInput } from "react-native";
 import { Noop } from "react-hook-form";
 import {
   convertToDesiredUnits,

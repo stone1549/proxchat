@@ -107,28 +107,27 @@ export const ChatBubble: React.FunctionComponent<ChatBubbleProps> = ({
     attributeOverrides = {
       style: {
         backgroundColor: theme.colors.primaryContainer,
-        color: theme.colors.onPrimary,
+        color: theme.colors.onPrimaryContainer,
       },
     };
   }
 
   return (
-    <Styled.ChatBubble theme={theme} elevation={1} {...attributeOverrides}>
-      <Styled.ChatBubbleLabel theme={theme}>
+    <Styled.ChatBubble elevation={1} {...attributeOverrides}>
+      <Styled.ChatBubbleLabel>
         {ownMessage ? "" : sender.username}{" "}
         {!ownMessage &&
           isMessage(message) &&
           `(${displayDistance(message.distanceInMeters, unitSystem)}) `}
         {displayTimeSince(message.createdAt)}
       </Styled.ChatBubbleLabel>
-      <Styled.ChatBubbleContent theme={theme}>
+      <Styled.ChatBubbleContent>
         <Styled.ChatBubbleContentText>{content}</Styled.ChatBubbleContentText>
-        {pending && !failed && <ActivityIndicator theme={theme} />}
+        {pending && !failed && <ActivityIndicator />}
         {failed && (
           <IconButton
             icon="alert"
             iconColor={MD3Colors.error50}
-            theme={theme}
             onPress={showDialog}
           />
         )}

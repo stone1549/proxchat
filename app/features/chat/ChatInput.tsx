@@ -32,7 +32,6 @@ export const ChatInput: React.FunctionComponent<ChatInputProps> = ({
   sendMessage,
   position,
 }) => {
-  const theme = useTheme();
   const {
     control,
     handleSubmit,
@@ -65,8 +64,9 @@ export const ChatInput: React.FunctionComponent<ChatInputProps> = ({
     !isValidating &&
     isValid;
 
+  const theme = useTheme();
   return (
-    <Styled.ChatInput theme={theme} elevation={1}>
+    <Styled.ChatInput elevation={1} theme={theme}>
       <Controller
         control={control}
         rules={{
@@ -87,7 +87,6 @@ export const ChatInput: React.FunctionComponent<ChatInputProps> = ({
       />
       <Button
         mode="elevated"
-        theme={theme}
         onPress={handleSubmit(onSubmit(position, sendMessage))}
         disabled={!enableSendButton}
       >
