@@ -10,6 +10,8 @@ import {
   setRadiusSettings,
 } from "./settingsSlice";
 import { AppDispatch } from "../../../App";
+import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import styled from "styled-components";
 
 export type SettingsDialogProps = {
   visible: boolean;
@@ -60,38 +62,54 @@ export const SettingsDialog: React.FunctionComponent<SettingsDialogProps> = ({
   const disableSaveButton = !isValid || isSubmitting || !isDirty;
   return (
     <Portal>
-      <Dialog visible={visible}>
-        <Dialog.Title>Settings</Dialog.Title>
-        <Dialog.Content>
-          <Controller
-            control={control}
-            rules={{
-              required: true,
-              min: 0.000001,
-              max: 4828032.0,
-              pattern: /^\d+(\.\d+)?$/,
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <ChatRadiusInput
-                disabled={isSubmitting}
-                onBlur={onBlur}
-                onChange={onChange}
-                value={value}
-              />
-            )}
-            name="radius"
-          />
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={hideDialog}>Cancel</Button>
-          <Button
-            onPress={handleSubmit(onSubmitRadius)}
-            disabled={disableSaveButton}
-          >
-            Save
-          </Button>
-        </Dialog.Actions>
-      </Dialog>
+      {/* component can not be rendered before the dialog should be visible because the Styled.TouchableView
+        prevents the menu IconButton from being pressed however the Styled.TouchableView is required
+        in order to allow the keyboard to be dismissed by the TouchableWithoutFeedback component
+      */}
+      {visible && (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <Styled.TouchableView>
+            <Dialog visible={visible} dismissable={false}>
+              <Dialog.Title>Settings</Dialog.Title>
+              <Dialog.Content>
+                <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                    min: 0.000001,
+                    max: 4828032.0,
+                    pattern: /^\d+(\.\d+)?$/,
+                  }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <ChatRadiusInput
+                      disabled={isSubmitting}
+                      onBlur={onBlur}
+                      onChange={onChange}
+                      value={value}
+                    />
+                  )}
+                  name="radius"
+                />
+              </Dialog.Content>
+              <Dialog.Actions>
+                <Button onPress={hideDialog}>Cancel</Button>
+                <Button
+                  onPress={handleSubmit(onSubmitRadius)}
+                  disabled={disableSaveButton}
+                >
+                  Save
+                </Button>
+              </Dialog.Actions>
+            </Dialog>
+          </Styled.TouchableView>
+        </TouchableWithoutFeedback>
+      )}
     </Portal>
   );
+};
+
+const Styled = {
+  TouchableView: styled(View)`
+    flex: 1;
+  `,
 };

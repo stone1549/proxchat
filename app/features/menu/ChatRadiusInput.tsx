@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { TextInput as NativeTextInput } from "react-native";
+import { Platform, TextInput as NativeTextInput } from "react-native";
 import { Noop } from "react-hook-form";
 import {
   convertToDesiredUnits,
@@ -159,8 +159,8 @@ export const ChatRadiusInput: React.FunctionComponent<ChatRadiusInputProps> = ({
         onBlur={onBlur}
         onChangeText={onChangeAdjustedRadius}
         value={adjustedRadius}
-        inputMode="numeric"
-        keyboardType="decimal-pad"
+        inputMode={"decimal"}
+        keyboardType={"decimal-pad"}
         disabled={disabled}
       />
       <Styled.SettingUnitsToggle
