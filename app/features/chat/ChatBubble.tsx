@@ -73,9 +73,9 @@ const displayDistance = (distanceInMeters: number, unitSystem: UnitSystems) => {
       const inFeet = convertToDesiredUnits(distanceInMeters, Units.m, Units.ft);
 
       if (inMiles < 0.1) {
-        return `${inFeet}ft away`;
+        return `${inFeet.toFixed(2)}ft away`;
       }
-      return `${inMiles} miles away`;
+      return `${inMiles.toFixed(2)} miles away`;
     default:
       throw new Error("unsupported unit type");
   }
