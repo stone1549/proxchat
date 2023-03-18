@@ -10,10 +10,11 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Provider } from "react-redux";
-import store from "./app/store";
+import { store, persistor } from "./app/store";
 import { ChatScreen } from "./app/features/chat/ChatScreen";
 import { SignupScreen } from "./app/features/signup/SignupScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { PersistGate } from "redux-persist/integration/react";
 
 export type AppDispatch = typeof store.dispatch;
 
@@ -39,18 +40,20 @@ const CombinedDarkTheme = {
 
 function App(): JSX.Element {
   return (
-    <SafeAreaProvider>
-      <PaperProvider theme={CombinedDarkTheme}>
-        <Provider store={store}>
-          <NavigationContainer theme={CombinedDarkTheme}>
-            <RootStack.Navigator>
-              <RootStack.Screen name="Chat" component={ChatScreen} />
-              <RootStack.Screen name="Signup" component={SignupScreen} />
-            </RootStack.Navigator>
-          </NavigationContainer>
-        </Provider>
-      </PaperProvider>
-    </SafeAreaProvider>
+    <PersistGate persistor={persistor}>
+      <Provider store={store}>
+        <SafeAreaProvider>
+          <PaperProvider theme={CombinedDarkTheme}>
+            <NavigationContainer theme={CombinedDarkTheme}>
+              <RootStack.Navigator>
+                <RootStack.Screen name="Chat" component={ChatScreen} />
+                <RootStack.Screen name="Signup" component={SignupScreen} />
+              </RootStack.Navigator>
+            </NavigationContainer>
+          </PaperProvider>
+        </SafeAreaProvider>
+      </Provider>
+    </PersistGate>
   );
 }
 

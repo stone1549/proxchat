@@ -15,13 +15,9 @@ const logout = (dispatch: AppDispatch, closeMenu: () => void) => async () => {
 
 type MenuProps = {
   currentRadius: number;
-  setRadius: (radius: number) => void;
 };
 
-export const Menu: React.FunctionComponent<MenuProps> = ({
-  currentRadius,
-  setRadius,
-}) => {
+export const Menu: React.FunctionComponent<MenuProps> = () => {
   const [visible, setVisible] = React.useState(false);
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
@@ -52,8 +48,6 @@ export const Menu: React.FunctionComponent<MenuProps> = ({
       <SettingsDialog
         visible={settingsVisible}
         setVisible={setSettingsVisible}
-        currentRadius={currentRadius}
-        setRadius={setRadius}
       />
     </>
   );

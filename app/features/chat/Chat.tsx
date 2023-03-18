@@ -44,7 +44,6 @@ export const Chat: React.FunctionComponent = () => {
     position,
     error,
     radius,
-    setRadius,
   } = useChat();
 
   const listRef = useRef<FlatList>(null);
@@ -55,9 +54,9 @@ export const Chat: React.FunctionComponent = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerRight: () => <Menu currentRadius={radius} setRadius={setRadius} />,
+      headerRight: () => <Menu currentRadius={radius} />,
     });
-  }, [navigation, radius, setRadius]);
+  }, [navigation, radius]);
   useLayoutEffect(() => {
     if (atEndOfList && listData.length > 0) {
       listRef?.current?.scrollToEnd({ animated: true });

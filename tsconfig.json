@@ -1,3 +1,7 @@
 {
-  "extends": "@tsconfig/react-native/tsconfig.json"
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "include": ["./node_modules/redux-persist/types"],
+  "compilerOptions": {
+    "target": "es2015"
+  }
 }

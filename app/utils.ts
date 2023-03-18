@@ -1,7 +1,5 @@
 import { Sender } from "./domain";
 import jwt_decode, { JwtPayload } from "jwt-decode";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Config from "react-native-config";
 
 type AppToken = JwtPayload & {
   username: string | undefined;
@@ -44,6 +42,9 @@ export const convertToMeters = (value: number, units: Units) => {
       throw new Error("unhandled unit");
   }
 };
+
+export const roundTo = (value: number, places: number) =>
+  Math.round(value * 10 ** places) / 10 ** places;
 
 export const convertToDesiredUnits = (
   value: number,
@@ -106,57 +107,4 @@ export const convertToDesiredUnits = (
     default:
       throw new Error("unhandled unit");
   }
-};
-
-export const getStoredRadiusUnitsSetting: () => Promise<Units> = async () => {
-  const storedRadiusUnits = await AsyncStorage.getItem("@Settings:radiusUnits");
-
-  if (!storedRadiusUnits) {
-    return Units.m;
-  }
-
-  return Units[storedRadiusUnits as keyof typeof Units];
-};
-
-export const setStoredRadiusUnitsSetting: (
-  unit: Units
-) => Promise<void> = async (unit: Units) => {
-  await AsyncStorage.setItem("@Settings:radiusUnits", unit);
-};
-
-export const getStoredUnitsSystemSetting: () => Promise<UnitSystems> =
-  async () => {
-    const storedUnitsSystem = await AsyncStorage.getItem(
-      "@Settings:unitSystem"
-    );
-
-    if (!storedUnitsSystem) {
-      return UnitSystems.metric;
-    }
-
-    return UnitSystems[storedUnitsSystem as keyof typeof UnitSystems];
-  };
-
-export const setStoredUnitsSystemSetting: (
-  unitsSystem: UnitSystems
-) => Promise<void> = async (unitsSystem: UnitSystems) => {
-  await AsyncStorage.setItem("@Settings:unitSystem", unitsSystem);
-};
-
-export const getStoredRadius: () => Promise<number> = async () => {
-  const radius = await AsyncStorage.getItem("@Settings:radius");
-
-  if (!radius && Config.CHAT_RADIUS) {
-    return Number.parseFloat(Config.CHAT_RADIUS);
-  } else if (radius) {
-    return Number.parseFloat(radius);
-  }
-
-  return 100;
-};
-
-export const setStoredRadius: (radius: number) => Promise<void> = async (
-  radius: number
-) => {
-  await AsyncStorage.setItem("@Settings:radius", radius.toString());
 };

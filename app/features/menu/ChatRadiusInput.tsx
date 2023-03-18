@@ -4,18 +4,22 @@ import { Noop } from "react-hook-form";
 import {
   convertToDesiredUnits,
   convertToMeters,
-  getStoredRadius,
-  getStoredRadiusUnitsSetting,
-  getStoredUnitsSystemSetting,
   MetricUnits,
-  setStoredRadiusUnitsSetting,
-  setStoredUnitsSystemSetting,
+  roundTo,
   StandardUnits,
   Units,
   UnitSystems,
 } from "../../utils";
 import { SegmentedButtons, TextInput } from "react-native-paper";
 import styled from "styled-components";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  selectRadiusInMeters,
+  selectUnits,
+  selectUnitSystem,
+  setRadiusSettings,
+} from "./settingsSlice";
+import { AppDispatch } from "../../../App";
 
 const unitsSystemButtons = [
   { label: "metric", value: UnitSystems.metric },
@@ -30,19 +34,24 @@ export type ChatRadiusInputProps = {
 };
 
 export const ChatRadiusInput: React.FunctionComponent<ChatRadiusInputProps> = ({
-  value,
   onBlur,
   onChange,
   disabled,
 }) => {
-  const [loadedSettings, setLoadedSettings] = useState(false);
-  const [unitSystem, setUnitSystem] = useState<UnitSystems>(UnitSystems.metric);
-  const [radiusUnits, setRadiusUnits] = useState<Units>(Units.m);
-  const [adjustedRadius, setAdjustedRadius] = useState(value);
+  const savedUnitSystem = useSelector(selectUnitSystem);
+  const savedUnits = useSelector(selectUnits);
+  const radiusInMeters = useSelector(selectRadiusInMeters);
+  const savedAdjustedRadius = convertToDesiredUnits(
+    radiusInMeters,
+    Units.m,
+    savedUnits
+  ).toString();
+  const dispatch = useDispatch<AppDispatch>();
+  const [adjustedRadius, setAdjustedRadius] = useState(savedAdjustedRadius);
   const adjustedRadiusRef = useRef<NativeTextInput>(null);
 
   const unitButtons = useMemo(() => {
-    switch (unitSystem) {
+    switch (savedUnitSystem) {
       case "metric":
         return MetricUnits.map((u) => {
           return {
@@ -60,38 +69,15 @@ export const ChatRadiusInput: React.FunctionComponent<ChatRadiusInputProps> = ({
       default:
         throw new Error("unhandled unit system");
     }
-  }, [unitSystem]);
+  }, [savedUnitSystem]);
 
   useEffect(() => {
-    const effect = async () => {
-      const storedUnitsSystem = await getStoredUnitsSystemSetting();
-      const storedRadiusUnits = await getStoredRadiusUnitsSetting();
-      const storedRadius = await getStoredRadius();
-      setUnitSystem(storedUnitsSystem);
-      setRadiusUnits(storedRadiusUnits);
-      const unitAdjustedRadius = convertToDesiredUnits(
-        storedRadius,
-        Units.m,
-        storedRadiusUnits
-      );
-      setAdjustedRadius(unitAdjustedRadius.toString());
-      setLoadedSettings(true);
-    };
-    effect().catch((e) => {
-      console.error(e);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!loadedSettings) {
-      return;
-    }
-    const radiusInMeters = convertToMeters(
-      Number.parseFloat(adjustedRadius),
-      radiusUnits
+    const radiusInMeters = roundTo(
+      convertToMeters(Number.parseFloat(adjustedRadius), savedUnits),
+      2
     );
     onChange(radiusInMeters.toString());
-  }, [loadedSettings, adjustedRadius]);
+  }, [adjustedRadius, savedUnits]);
 
   const onChangeAdjustedRadius = useMemo(() => {
     return (newValue: string) => {
@@ -101,69 +87,89 @@ export const ChatRadiusInput: React.FunctionComponent<ChatRadiusInputProps> = ({
 
   const onRadiusUnitsChange = useMemo(() => {
     return async (value: string) => {
-      const newAdjustedRadius = convertToDesiredUnits(
-        Number.parseFloat(adjustedRadius),
-        radiusUnits,
-        Units[value as keyof typeof Units]
+      const newAdjustedRadius = roundTo(
+        convertToDesiredUnits(
+          Number.parseFloat(adjustedRadius),
+          savedUnits,
+          Units[value as keyof typeof Units]
+        ),
+        2
       );
-      setRadiusUnits(Units[value as keyof typeof Units]);
+      dispatch(
+        setRadiusSettings({
+          unitSystem: savedUnitSystem,
+          units: Units[value as keyof typeof Units],
+          radiusInMeters: radiusInMeters,
+        })
+      );
       setAdjustedRadius(newAdjustedRadius.toString());
-      await setStoredRadiusUnitsSetting(Units[value as keyof typeof Units]);
     };
-  }, [adjustedRadius, radiusUnits, setRadiusUnits, setAdjustedRadius]);
+  }, [adjustedRadius, savedUnits, savedUnitSystem, setAdjustedRadius]);
 
   const onRadiusUnitsSystemChange = useMemo(() => {
     return async (value: string) => {
       switch (UnitSystems[value as keyof typeof UnitSystems]) {
         case UnitSystems.standard:
-          const newAdjustedRadius = convertToDesiredUnits(
-            Number.parseFloat(adjustedRadius),
-            radiusUnits,
-            Units.ft
+          const newAdjustedRadius = roundTo(
+            convertToDesiredUnits(
+              Number.parseFloat(adjustedRadius),
+              savedUnits,
+              Units.ft
+            ),
+            2
           );
-          setUnitSystem(UnitSystems.standard);
-          setRadiusUnits(Units.ft);
+          dispatch(
+            setRadiusSettings({
+              unitSystem: UnitSystems.standard,
+              units: Units.ft,
+              radiusInMeters: radiusInMeters,
+            })
+          );
           setAdjustedRadius(newAdjustedRadius.toString());
-          await setStoredRadiusUnitsSetting(Units.ft);
           break;
         case UnitSystems.metric:
-          const newAdjustedRadius2 = convertToDesiredUnits(
-            Number.parseFloat(adjustedRadius),
-            radiusUnits,
-            Units.m
+          const newAdjustedRadius2 = roundTo(
+            convertToDesiredUnits(
+              Number.parseFloat(adjustedRadius),
+              savedUnits,
+              Units.m
+            ),
+            2
           );
-          setUnitSystem(UnitSystems.metric);
-          setRadiusUnits(Units.m);
+          dispatch(
+            setRadiusSettings({
+              unitSystem: UnitSystems.metric,
+              units: Units.m,
+              radiusInMeters: radiusInMeters,
+            })
+          );
           setAdjustedRadius(newAdjustedRadius2.toString());
-          await setStoredRadiusUnitsSetting(Units.m);
           break;
         default:
           throw new Error("unsupported units system");
       }
-      await setStoredUnitsSystemSetting(
-        UnitSystems[value as keyof typeof UnitSystems]
-      );
     };
-  }, [adjustedRadius, setUnitSystem, setRadiusUnits, setAdjustedRadius]);
+  }, [adjustedRadius, savedUnits, savedUnitSystem, setAdjustedRadius]);
+
   return (
     <>
       <Styled.SettingRadiusInput
-        label={`radius (${radiusUnits})`}
+        label={`radius (${savedUnits})`}
         ref={adjustedRadiusRef}
         onBlur={onBlur}
         onChangeText={onChangeAdjustedRadius}
         value={adjustedRadius}
         inputMode="numeric"
         keyboardType="decimal-pad"
-        disabled={disabled || !loadedSettings}
+        disabled={disabled}
       />
       <Styled.SettingUnitsToggle
-        value={radiusUnits}
+        value={savedUnits}
         onValueChange={onRadiusUnitsChange}
         buttons={unitButtons}
       />
       <Styled.SettingUnitsToggle
-        value={unitSystem}
+        value={savedUnitSystem}
         onValueChange={onRadiusUnitsSystemChange}
         buttons={unitsSystemButtons}
       />

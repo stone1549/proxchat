@@ -3,13 +3,13 @@ import { isEqual } from "lodash";
 import { AppDispatch } from "../../../App";
 import { AuthError, ChatError, pollChat, send } from "../../api";
 import { reauth, useAuth, useInterval } from "../../hooks";
-import { useEffect, useMemo, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
-import { getSenderFromToken, getStoredRadius } from "../../utils";
+import { getSenderFromToken } from "../../utils";
 import Geolocation from "@react-native-community/geolocation";
-import Config from "react-native-config";
+import { selectRadiusInMeters } from "../menu/settingsSlice";
 
 export const CHAT_POLL_MS = 5000;
 export const GPS_POLL_MS = 300000;
@@ -17,12 +17,8 @@ export const GPS_POLL_MS = 300000;
 type RemovePendingMessageFunc = (message: Message | PendingMessage) => void;
 type SendMessageFunc = (content: string, position: Location) => void;
 
-const defaultRadius = Config.CHAT_RADIUS
-  ? Number.parseFloat(Config.CHAT_RADIUS)
-  : 1000;
-
 export const useChat = () => {
-  const [radius, setRadius] = useState(defaultRadius);
+  const radiusInMeters = useSelector(selectRadiusInMeters);
   const [messages, setMessages] = useState<Array<Message>>([]);
   const [pendingMessages, setPendingMessages] = useState<Array<PendingMessage>>(
     []
@@ -32,19 +28,6 @@ export const useChat = () => {
   const { token } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
 
-  useEffect(() => {
-    const checkStorageForRadius = async () => {
-      const storedRadius = await getStoredRadius();
-      if (storedRadius !== null) {
-        setRadius(storedRadius);
-      }
-    };
-
-    checkStorageForRadius().catch((e) => {
-      //TODO: figure out how to handle this
-      console.error(e);
-    });
-  }, []);
   const removePendingMessage = useMemo<RemovePendingMessageFunc>(() => {
     return (message: Message | PendingMessage) => {
       for (const [index, pending] of pendingMessages.entries()) {
@@ -71,7 +54,12 @@ export const useChat = () => {
       after = messages[messages.length - 1].createdAt;
     }
     if (position !== undefined) {
-      const newMessages = await pollChat(position, radius, after, token);
+      const newMessages = await pollChat(
+        position,
+        radiusInMeters,
+        after,
+        token
+      );
       setError("");
       if (newMessages.length > 0) {
         for (const newMessage of newMessages) {
@@ -149,8 +137,7 @@ export const useChat = () => {
     error,
     removePendingMessage,
     resendMessage,
-    radius,
-    setRadius,
+    radius: radiusInMeters,
   };
 };
 

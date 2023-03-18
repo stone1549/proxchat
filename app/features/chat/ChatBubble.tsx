@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Card,
@@ -12,6 +12,9 @@ import styled from "styled-components";
 import { useAuth } from "../../hooks";
 import { FailedMessageDialog } from "./FailedMessageDialog";
 import moment from "moment";
+import { useSelector } from "react-redux";
+import { selectUnitSystem } from "../menu/settingsSlice";
+import { convertToDesiredUnits, Units, UnitSystems } from "../../utils";
 
 export type ChatBubbleProps = {
   message: Message | PendingMessage;
@@ -52,13 +55,29 @@ const displayTimeSince = (createdAt: moment.Moment) => {
   }
 };
 
-const displayDistance = (distanceInMeters: number) => {
-  const km = distanceInMeters / 1000;
+const displayDistance = (distanceInMeters: number, unitSystem: UnitSystems) => {
+  switch (unitSystem) {
+    case UnitSystems.metric:
+      const km = distanceInMeters / 1000;
 
-  if (km > 0.5) {
-    return `${km.toFixed()}km away`;
-  } else {
-    return `${distanceInMeters.toFixed()}m away`;
+      if (km > 0.5) {
+        return `${km.toFixed()}km away`;
+      }
+      return `${distanceInMeters.toFixed()}m away`;
+    case UnitSystems.standard:
+      const inMiles = convertToDesiredUnits(
+        distanceInMeters,
+        Units.m,
+        Units.mi
+      );
+      const inFeet = convertToDesiredUnits(distanceInMeters, Units.m, Units.ft);
+
+      if (inMiles < 0.1) {
+        return `${inFeet}ft away`;
+      }
+      return `${inMiles} miles away`;
+    default:
+      throw new Error("unsupported unit type");
   }
 };
 
@@ -69,7 +88,8 @@ export const ChatBubble: React.FunctionComponent<ChatBubbleProps> = ({
 }) => {
   const { username } = useAuth();
   const theme = useTheme();
-  const [dialogVisible, setDialogVisible] = React.useState(false);
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const unitSystem = useSelector(selectUnitSystem);
 
   const showDialog = () => setDialogVisible(true);
 
@@ -98,7 +118,7 @@ export const ChatBubble: React.FunctionComponent<ChatBubbleProps> = ({
         {ownMessage ? "" : sender.username}{" "}
         {!ownMessage &&
           isMessage(message) &&
-          `(${displayDistance(message.distanceInMeters)}) `}
+          `(${displayDistance(message.distanceInMeters, unitSystem)}) `}
         {displayTimeSince(message.createdAt)}
       </Styled.ChatBubbleLabel>
       <Styled.ChatBubbleContent theme={theme}>

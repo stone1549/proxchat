@@ -2,13 +2,18 @@ import React, { useMemo } from "react";
 import { Button, Dialog, Portal } from "react-native-paper";
 import { Controller, useForm } from "react-hook-form";
 import { ChatRadiusInput } from "./ChatRadiusInput";
-import { setStoredRadius } from "../../utils";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  selectRadiusInMeters,
+  selectUnits,
+  selectUnitSystem,
+  setRadiusSettings,
+} from "./settingsSlice";
+import { AppDispatch } from "../../../App";
 
 export type SettingsDialogProps = {
   visible: boolean;
   setVisible: (visible: boolean) => void;
-  currentRadius: number;
-  setRadius: (radius: number) => void;
 };
 
 export type SettingsFormData = {
@@ -18,12 +23,15 @@ export type SettingsFormData = {
 export const SettingsDialog: React.FunctionComponent<SettingsDialogProps> = ({
   visible,
   setVisible,
-  setRadius,
-  currentRadius,
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const hideDialog = useMemo(() => {
     return () => setVisible(false);
   }, [setVisible]);
+
+  const currentUnitSystem = useSelector(selectUnitSystem);
+  const currentUnits = useSelector(selectUnits);
+  const currentRadiusMeters = useSelector(selectRadiusInMeters);
 
   const {
     control,
@@ -31,18 +39,23 @@ export const SettingsDialog: React.FunctionComponent<SettingsDialogProps> = ({
     formState: { errors, isSubmitting, isValid, isDirty },
   } = useForm<SettingsFormData>({
     defaultValues: {
-      radius: `${currentRadius}`,
+      radius: `${currentRadiusMeters}`,
     },
   });
 
   const onSubmitRadius = useMemo(() => {
     return async (data: SettingsFormData) => {
       const newRadius = Number.parseFloat(data.radius);
-      setRadius(newRadius);
       hideDialog();
-      await setStoredRadius(newRadius);
+      dispatch(
+        setRadiusSettings({
+          radiusInMeters: newRadius,
+          unitSystem: currentUnitSystem,
+          units: currentUnits,
+        })
+      );
     };
-  }, [setRadius, hideDialog]);
+  }, [hideDialog, currentUnits, currentUnitSystem]);
 
   const disableSaveButton = !isValid || isSubmitting || !isDirty;
   return (
