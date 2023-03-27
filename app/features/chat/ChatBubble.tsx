@@ -11,26 +11,29 @@ import { isMessage, Message, PendingMessage } from "../../domain";
 import styled from "styled-components";
 import { useAuth } from "../../hooks";
 import { FailedMessageDialog } from "./FailedMessageDialog";
-import moment from "moment";
 import { useSelector } from "react-redux";
 import { selectUnitSystem } from "../menu/settingsSlice";
 import { convertToDesiredUnits, Units, UnitSystems } from "../../utils";
+import { RemovePendingMessageFunc } from "./hooks";
+import { DateTime } from "luxon";
 
 export type ChatBubbleProps = {
   message: Message | PendingMessage;
-  removePendingMessage: (msg: PendingMessage | Message) => void;
+  removePendingMessage: RemovePendingMessageFunc;
   resendMessage: (message: PendingMessage) => void;
 };
 
-const displayTimeSince = (createdAt: moment.Moment) => {
-  const now = moment();
-  const years = now.diff(createdAt, "year");
-  const months = now.diff(createdAt, "month");
-  const weeks = now.diff(createdAt, "week");
-  const days = now.diff(createdAt, "days");
-  const hours = now.diff(createdAt, "hour");
-  const minutes = now.diff(createdAt, "minute");
-  const seconds = now.diff(createdAt, "second");
+const displayTimeSince = (ts: DateTime) => {
+  const durationObject = ts
+    .diffNow(["year", "month", "week", "day", "hour", "minute", "second"])
+    .toObject();
+  const years = Math.round(Math.abs(durationObject.years || 0));
+  const months = Math.round(Math.abs(durationObject.months || 0));
+  const weeks = Math.round(Math.abs(durationObject.weeks || 0));
+  const days = Math.round(Math.abs(durationObject.days || 0));
+  const hours = Math.round(Math.abs(durationObject.hours || 0));
+  const minutes = Math.round(Math.abs(durationObject.minutes || 0));
+  const seconds = Math.round(Math.abs(durationObject.seconds || 0));
 
   if (years !== 0) {
     if (months < 3) {
@@ -119,7 +122,9 @@ export const ChatBubble: React.FunctionComponent<ChatBubbleProps> = ({
         {!ownMessage &&
           isMessage(message) &&
           `(${displayDistance(message.distanceInMeters, unitSystem)}) `}
-        {displayTimeSince(message.createdAt)}
+        {isMessage(message)
+          ? displayTimeSince(message.receivedAt)
+          : displayTimeSince(message.sentAt)}
       </Styled.ChatBubbleLabel>
       <Styled.ChatBubbleContent>
         <Styled.ChatBubbleContentText>{content}</Styled.ChatBubbleContentText>

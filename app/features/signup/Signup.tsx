@@ -5,7 +5,7 @@ import { AppDispatch, RootStackParamList } from "../../../App";
 import { useDispatch } from "react-redux";
 import { Controller, useForm } from "react-hook-form";
 import styled from "styled-components";
-import { ChatError, signup } from "../../api";
+import { signup, SignupError } from "../../api";
 import { loginSlice } from "../login/loginSlice";
 import {
   Keyboard,
@@ -33,7 +33,7 @@ const onSubmit =
       dispatch(loginSlice.actions.loggedIn({ token: token.token }));
       setError("");
     } catch (e) {
-      if (e instanceof ChatError) {
+      if (e instanceof SignupError) {
         setError(e.message);
         return;
       }

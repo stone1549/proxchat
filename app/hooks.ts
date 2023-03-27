@@ -1,9 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import {
   keychainLoginAsync,
-  login,
+  loggedIn,
   loginAsync,
-  logout,
   selectError,
   selectLoading,
   selectToken,
@@ -12,26 +11,9 @@ import {
 } from "./features/login/loginSlice";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppDispatch } from "../App";
-import { auth } from "./api";
 import { useIsomorphicLayoutEffect } from "react-redux/es/utils/useIsomorphicLayoutEffect";
-import Keychain from "react-native-keychain";
 import "react-native-get-random-values";
-
-export const reauth = async (
-  retryFunction: (token: string) => Promise<void>,
-  dispatch: AppDispatch
-): Promise<void> => {
-  const creds = await Keychain.getGenericPassword();
-  if (creds) {
-    const tokResp = await auth(creds.username, creds.password);
-    dispatch(login(tokResp));
-    try {
-      await retryFunction(tokResp.token);
-    } catch (e) {
-      dispatch(logout());
-    }
-  }
-};
+import { refreshToken } from "./api";
 
 export type LoginFunc = (email: string, password: string) => void;
 export const useAuth = () => {
@@ -47,6 +29,17 @@ export const useAuth = () => {
       dispatch(loginAsync({ email, password }));
     };
   }, []);
+
+  useInterval(
+    async () => {
+      if (token) {
+        const newToken = await refreshToken(token);
+        dispatch(loggedIn(newToken));
+      }
+    },
+    1000 * 60 * 5,
+    false
+  );
 
   useEffect(() => {
     if (!token && !triedKeychain) {

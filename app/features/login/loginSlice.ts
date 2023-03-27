@@ -30,6 +30,7 @@ export const loginAsync = createAsyncThunk<
       await Keychain.setGenericPassword(arg.email, arg.password);
       return { username: arg.email, token: resp.token };
     } catch (e) {
+      console.error(e);
       if (e instanceof AuthError) {
         return thunkAPI.rejectWithValue({
           status: e.status,
@@ -177,5 +178,5 @@ export const selectTriedKeychain = (state: RootState) =>
   state.login.triedKeychain;
 export const selectError = (state: RootState) => state.login.error;
 
-export const { logout, login } = loginSlice.actions;
+export const { logout, login, loggedIn } = loginSlice.actions;
 export default loginSlice.reducer;

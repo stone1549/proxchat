@@ -1,4 +1,4 @@
-import moment from "moment";
+import { DateTime } from "luxon";
 
 export type Sender = {
   id: string;
@@ -15,7 +15,8 @@ export type Message = {
   content: string;
   sender: Sender;
   location: Location;
-  createdAt: moment.Moment;
+  sentAt: DateTime;
+  receivedAt: DateTime;
   clientId: string;
   distanceInMeters: number;
 };
@@ -27,7 +28,7 @@ export type PendingMessage = {
   location: Location;
   retries: number;
   failed: boolean;
-  createdAt: moment.Moment;
+  sentAt: DateTime;
   succeeded: boolean;
 };
 
