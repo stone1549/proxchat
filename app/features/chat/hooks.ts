@@ -1,7 +1,7 @@
 import { Location, Message, PendingMessage } from "../../domain";
-import { delay, isEqual } from "lodash";
+import { isEqual } from "lodash";
 import { useAuth, useInterval } from "../../hooks";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 import { dateTimeReviver, getSenderFromToken } from "../../utils";
@@ -25,7 +25,7 @@ export const GPS_POLL_MS = 300000;
 export type RemovePendingMessageFunc = (clientId: string) => void;
 export type SendMessageFunc = (content: string, position: Location) => void;
 export const useChat = () => {
-  const [reconnect, setReconnect] = useState(false);
+  const [checkConnectionDelay, setCheckConnectionDelay] = useState(15000);
   const [reconnectDelay, setReconnectDelay] = useState(250);
   const radiusInMeters = useSelector(selectRadiusInMeters);
   const [messages, setMessages] = useState<Array<Message>>([]);
@@ -36,13 +36,12 @@ export const useChat = () => {
   const { position } = usePosition();
   const { token } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
-  const ws = useMemo(() => {
-    return new WebSocket("ws://127.0.0.1:9006/ws");
-  }, [reconnect]);
+  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    wsRef.current = new WebSocket("ws://127.0.0.1:9006/ws");
     return () => {
-      ws.close();
+      wsRef.current?.close();
     };
   }, []);
 
@@ -58,77 +57,78 @@ export const useChat = () => {
     };
   }, [pendingMessages, setPendingMessages]);
 
-  ws.onopen = () => {
-    setError("");
-    setReconnectDelay(250);
-    if (position) {
-      sendHandshake(ws, token, position, radiusInMeters);
-    }
-  };
-
-  ws.onmessage = (event) => {
-    try {
-      const message: ServerMessage<ServerPayload> = JSON.parse(
-        event.data,
-        dateTimeReviver
-      );
-
-      switch (message.payload.type) {
-        case "ChatMessageNotification":
-          if (isChatMessageNotificationMessage(message)) {
-            setMessages([...messages, toMessage(message, position)]);
-            // delay(() => {
-            removePendingMessage(message.payload.message.clientId);
-            // }, 10);
-          } else {
-            console.error("Invalid ChatMessageNotification message", message);
-          }
-          break;
-        case "HandshakeResponse":
-          if (pendingMessages.length > 0) {
-            pendingMessages.forEach((m) => {
-              if (!m.failed && !m.succeeded) {
-                ws.send(JSON.stringify(toClientSendChatMessage(m, token)));
-              }
-            });
-          }
-          break;
-        case "ErrorResponse":
-          if (isErrorResponseMessage(message)) {
-            if (message.payload.code === 401) {
-              dispatch(logout());
-            } else if (message.payload.code !== 409) {
-              // This error is caused when the simulator refreshes the UI to hotload changes and ends up
-              // sending the handshake message more than once. We can ignore it as it should never happen
-              // in production.
-              setError(message.payload.error);
-            }
-          } else {
-            console.error("Invalid ErrorResponse message", message);
-          }
-          break;
-        default: {
-          console.error("Unknown message type", message);
-        }
+  if (wsRef.current) {
+    wsRef.current.onopen = () => {
+      setError("");
+      setReconnectDelay(250);
+      setCheckConnectionDelay(15000);
+      if (position && wsRef.current) {
+        sendHandshake(wsRef.current, token, position, radiusInMeters);
       }
-    } catch (e) {
-      console.error("Failed to parse message", event.data, e);
-    }
-  };
+    };
 
-  ws.onerror = (event) => {
-    console.error("WebSocket error", event);
-    setError("connection error");
-  };
+    wsRef.current.onmessage = (event) => {
+      try {
+        const message: ServerMessage<ServerPayload> = JSON.parse(
+          event.data,
+          dateTimeReviver
+        );
 
-  ws.onclose = (_) => {
-    delay(() => {
-      setReconnect(!reconnect);
-      setReconnectDelay(Math.min(reconnectDelay * 2, 60000));
-    }, reconnectDelay);
-    ws.close();
-  };
+        switch (message.payload.type) {
+          case "ChatMessageNotification":
+            if (isChatMessageNotificationMessage(message)) {
+              setMessages([...messages, toMessage(message, position)]);
+              // delay(() => {
+              removePendingMessage(message.payload.message.clientId);
+              // }, 10);
+            } else {
+              console.error("Invalid ChatMessageNotification message", message);
+            }
+            break;
+          case "HandshakeResponse":
+            if (pendingMessages.length > 0) {
+              pendingMessages.forEach((m) => {
+                if (!m.failed && !m.succeeded) {
+                  wsRef.current?.send(
+                    JSON.stringify(toClientSendChatMessage(m, token))
+                  );
+                }
+              });
+            }
+            break;
+          case "ErrorResponse":
+            if (isErrorResponseMessage(message)) {
+              if (message.payload.code === 401) {
+                dispatch(logout());
+              } else if (message.payload.code !== 409) {
+                // This error is caused when the simulator refreshes the UI to hotload changes and ends up
+                // sending the handshake message more than once. We can ignore it as it should never happen
+                // in production.
+                setError(message.payload.error);
+              }
+            } else {
+              console.error("Invalid ErrorResponse message", message);
+            }
+            break;
+          default: {
+            console.error("Unknown message type", message);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse message", event.data, e);
+      }
+    };
 
+    wsRef.current.onerror = (event) => {
+      console.log("WebSocket error", event);
+      setError("connection error");
+      wsRef.current?.close();
+    };
+
+    wsRef.current.onclose = (_) => {
+      console.log("Websocket closed");
+    };
+  }
   const sendMessage = useMemo<SendMessageFunc>(() => {
     return async (content: string, position: Location) => {
       const message: PendingMessage = {
@@ -142,9 +142,11 @@ export const useChat = () => {
         succeeded: false,
       };
       setPendingMessages([...pendingMessages, message]);
-      ws.send(JSON.stringify(toClientSendChatMessage(message, token)));
+      wsRef.current?.send(
+        JSON.stringify(toClientSendChatMessage(message, token))
+      );
     };
-  }, [ws, pendingMessages, setPendingMessages, token]);
+  }, [wsRef, pendingMessages, setPendingMessages, token]);
 
   const resendMessage = async (message: PendingMessage) => {
     for (const [index, pm] of pendingMessages.entries()) {
@@ -166,8 +168,24 @@ export const useChat = () => {
         break;
       }
     }
-    ws.send(JSON.stringify(toClientSendChatMessage(message, token)));
+    wsRef.current?.send(
+      JSON.stringify(toClientSendChatMessage(message, token))
+    );
   };
+
+  useInterval(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.CLOSED) {
+      console.log(
+        `websocket closed, reconnecting after delay... ${reconnectDelay}`
+      );
+      setReconnectDelay(Math.min(reconnectDelay * 2, 10000));
+      setCheckConnectionDelay(Math.min(reconnectDelay * 2, 10000));
+      wsRef.current = new WebSocket("ws://127.0.0.1:9006/ws");
+      if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+        setError("reconnecting...");
+      }
+    }
+  }, checkConnectionDelay);
   return {
     messages,
     pendingMessages,
