@@ -14,6 +14,7 @@ import {
   ServerMessage,
   ServerPayload,
   toClientSendChatMessage,
+  toClientUpdateStateMessage,
   toMessage,
 } from "./protocol";
 import { DateTime } from "luxon";
@@ -45,6 +46,20 @@ export const useChat = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (
+      wsRef.current &&
+      wsRef.current.readyState === WebSocket.OPEN &&
+      position
+    ) {
+      wsRef.current.send(
+        JSON.stringify(
+          toClientUpdateStateMessage(position, radiusInMeters, token),
+          dateTimeReviver
+        )
+      );
+    }
+  }, [wsRef, position, radiusInMeters]);
   const removePendingMessage = useMemo<RemovePendingMessageFunc>(() => {
     return (clientId: string) => {
       const index = pendingMessages.findIndex((m) => m.clientId === clientId);
@@ -186,6 +201,7 @@ export const useChat = () => {
       }
     }
   }, checkConnectionDelay);
+
   return {
     messages,
     pendingMessages,

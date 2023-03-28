@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 export enum ClientMessageType {
   Handshake = "Handshake",
   SendChatMessage = "SendChatMessage",
-  UpdateLocation = "UpdateLocation",
+  UpdateState = "UpdateState",
 }
 
 export enum ServerMessageType {
@@ -59,18 +59,28 @@ export const sendHandshake = (
   ws.send(JSON.stringify(handshake));
 };
 
-export interface HandshakeResponseMessage
-  extends ServerMessage<{
-    type: ServerMessageType.HandshakeResponse;
-    error?: string;
-  }> {}
-
-export interface ClientUpdateLocationMessage
+export interface ClientUpdateStateMessage
   extends ClientMessage<{
-    type: ClientMessageType.SendChatMessage;
+    type: ClientMessageType.UpdateState;
     position: Location;
     radius: number;
   }> {}
+
+export const toClientUpdateStateMessage = (
+  position: Location,
+  radiusInMeters: number,
+  token: string
+): ClientUpdateStateMessage => {
+  return {
+    id: uuidv4(),
+    token,
+    payload: {
+      type: ClientMessageType.UpdateState,
+      position,
+      radius: radiusInMeters,
+    },
+  };
+};
 
 export interface ClientSendChatMessage
   extends ClientMessage<{
