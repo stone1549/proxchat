@@ -37,3 +37,16 @@ export const isMessage = (
 ): value is Message => {
   return value.hasOwnProperty("id");
 };
+
+export enum Gender {
+  male = "male",
+  female = "female",
+  "non-binary" = "non-binary",
+  other = "other",
+}
+
+export type UserProfile = {
+  gender: keyof typeof Gender;
+  age: number;
+  topics: Set<string>;
+};

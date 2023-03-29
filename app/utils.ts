@@ -122,3 +122,7 @@ export const dateTimeReviver: (key: string, value: any) => any = (
   }
   return value;
 };
+
+export function enumKeys<E extends object>(e: E): (keyof E)[] {
+  return Object.keys(e) as (keyof E)[];
+}

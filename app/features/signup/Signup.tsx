@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Button, Surface, Text, TextInput, useTheme } from "react-native-paper";
+import {
+  Button,
+  SegmentedButtons,
+  Surface,
+  Text,
+  TextInput,
+  useTheme,
+} from "react-native-paper";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AppDispatch, RootStackParamList } from "../../../App";
 import { useDispatch } from "react-redux";
@@ -14,6 +21,8 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
+import { Gender } from "../../domain";
+import { enumKeys } from "../../utils";
 
 export type SignupProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Signup">;
@@ -23,13 +32,23 @@ type FormData = {
   email: string;
   username: string;
   password: string;
+  gender: string;
+  age: string;
+  topics: Set<string>;
 };
 
 const onSubmit =
   (setError: (message: string) => void, dispatch: AppDispatch) =>
   async (data: FormData) => {
     try {
-      const token = await signup(data.email, data.username, data.password);
+      const token = await signup(
+        data.email,
+        data.username,
+        data.password,
+        data.gender as keyof typeof Gender,
+        Number.parseInt(data.age),
+        data.topics
+      );
       dispatch(loginSlice.actions.loggedIn({ token: token.token }));
       setError("");
     } catch (e) {
@@ -41,6 +60,15 @@ const onSubmit =
       setError("unknown error");
     }
   };
+
+const genderButtons = () => {
+  return enumKeys(Gender).map((g) => {
+    return {
+      label: g,
+      value: g,
+    };
+  });
+};
 
 export const Signup: React.FunctionComponent<SignupProps> = ({
   navigation,
@@ -59,18 +87,21 @@ export const Signup: React.FunctionComponent<SignupProps> = ({
       isValidating,
     },
   } = useForm<FormData>({
+    mode: "all",
     defaultValues: {
       email: "",
       username: "",
       password: "",
+      gender: "",
+      age: "",
+      topics: new Set<string>(),
     },
   });
 
   const loading = isSubmitting;
 
   const disableSignupButton =
-    !isValid && isValidating && isSubmitSuccessful && isSubmitting;
-
+    !isValid || isValidating || (isSubmitSuccessful && !error) || isSubmitting;
   useEffect(() => {
     if (isSubmitSuccessful && !error) {
       navigation.navigate("Chat");
@@ -170,6 +201,57 @@ export const Signup: React.FunctionComponent<SignupProps> = ({
                 : "invalid password"}
             </Styled.InputError>
           )}
+          <Controller
+            control={control}
+            rules={{
+              validate: (value) => {
+                if (!value) {
+                  return false;
+                }
+
+                return enumKeys(Gender).includes(value as keyof typeof Gender);
+              },
+            }}
+            render={({ field: { onChange, value } }) => (
+              <Styled.SignupGenderInput
+                onValueChange={onChange}
+                value={(value as string) ? (value as string) : ""}
+                buttons={genderButtons()}
+              />
+            )}
+            name="gender"
+          />
+          {errors.gender && (
+            <Styled.InputError theme={theme}>
+              {errors.gender.type === "required"
+                ? "gender required"
+                : "invalid gender"}
+            </Styled.InputError>
+          )}
+          <Controller
+            control={control}
+            rules={{
+              required: true,
+              pattern: /^[[1-9]+[0-9]*$/,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Styled.SignupTextInput
+                label={"age"}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                inputMode={"numeric"}
+                keyboardType={"numeric"}
+                disabled={loading}
+              />
+            )}
+            name="age"
+          />
+          {errors.age && (
+            <Styled.InputError theme={theme}>
+              {errors.age.type === "required" ? "age required" : "invalid age"}
+            </Styled.InputError>
+          )}
           <Styled.SignupButton
             mode="contained"
             onPress={handleSubmit(onSubmit(setError, dispatch))}
@@ -195,6 +277,9 @@ const Styled = {
     margin-top: 10px;
   `,
   SignupTextInput: styled(TextInput)`
+    margin-top: 10px;
+  `,
+  SignupGenderInput: styled(SegmentedButtons)`
     margin-top: 10px;
   `,
   InputError: styled(Text)`
